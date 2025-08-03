@@ -35,6 +35,9 @@ repositories {
         name = "BlameJared"
         url = uri("https://maven.blamejared.com/")
     }
+    maven {
+        url = uri("https://api.modrinth.com/maven") 
+    }
 }
 
 base {
@@ -98,14 +101,18 @@ configurations {
 }
 
 dependencies {
+    // 使用远程geckolib依赖
     implementation("software.bernie.geckolib:geckolib-neoforge-${project.property("minecraft_version")}:${project.property("geckolib_version")}")
 
     compileOnly("mezz.jei:jei-${project.property("minecraft_version")}-neoforge-api:${project.property("jei_version")}")
-
     runtimeOnly("mezz.jei:jei-${project.property("minecraft_version")}-neoforge:${project.property("jei_version")}")
 
     compileOnly("tschipp.carryon:carryon-neoforge-${project.property("minecraft_version")}:${project.property("carryon_version")}")
     runtimeOnly("tschipp.carryon:carryon-neoforge-${project.property("minecraft_version")}:${project.property("carryon_version")}")
+
+    compileOnly("maven.modrinth:jade:${project.property("jade_version")}")
+    runtimeOnly("maven.modrinth:jade:${project.property("jade_version")}")
+
 }
 
 val generateModMetadata = tasks.register<ProcessResources>("generateModMetadata") {
