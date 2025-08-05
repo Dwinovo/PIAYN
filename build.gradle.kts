@@ -12,7 +12,29 @@ tasks.named<Wrapper>("wrapper").configure {
 version = project.property("mod_version") as String
 group = project.property("mod_group_id") as String
 
-repositories {
+repositories {    // 阿里云镜像 - 优先使用，速度最快
+    maven {
+        name = "Aliyun Central"
+        url = uri("https://maven.aliyun.com/repository/central")
+
+        content {
+            // 优先从阿里云下载常用依赖
+            includeGroup("org.projectlombok")
+            includeGroup("org.slf4j")
+            includeGroup("com.google.guava")
+        }
+    }
+    maven { url = uri("https://maven.aliyun.com/repository/public") }      // Maven Central
+    maven { url = uri("https://maven.aliyun.com/repository/jcenter") }     // JCenter
+    maven { url = uri("https://maven.aliyun.com/repository/google") }      // Google
+    maven { url = uri("https://maven.aliyun.com/repository/gradle-plugin") } // Gradle 插件
+    
+    // 腾讯云镜像作为备用
+    maven {
+        name = "Tencent Central"
+        url = uri("https://mirrors.cloud.tencent.com/nexus/repository/maven-public/")
+    }
+
     maven {
         name = "GeckoLib"
         url = uri("https://dl.cloudsmith.io/public/geckolib3/geckolib/maven/")
@@ -41,7 +63,7 @@ repositories {
 }
 
 base {
-    archivesName.set(project.property("mod_id") as String)
+    archivesName = "PetIsAllYouNeed-NeoForge-" + project.property("minecraft_version")
 }
 
 java.toolchain.languageVersion.set(JavaLanguageVersion.of(21))
@@ -98,11 +120,14 @@ sourceSets.main.configure {
 
 configurations {
     runtimeClasspath.get().extendsFrom(create("localRuntime"))
+    // 使用NeoForge提供的additionalRuntimeClasspath配置
 }
 
 dependencies {
-    // 使用远程geckolib依赖
-    implementation("software.bernie.geckolib:geckolib-neoforge-${project.property("minecraft_version")}:${project.property("geckolib_version")}")
+    // 使用jar-in-jar方式打包Geckolib
+    compileOnly("software.bernie.geckolib:geckolib-neoforge-${project.property("minecraft_version")}:${project.property("geckolib_version")}")
+    runtimeOnly("software.bernie.geckolib:geckolib-neoforge-${project.property("minecraft_version")}:${project.property("geckolib_version")}")
+    jarJar("software.bernie.geckolib:geckolib-neoforge-${project.property("minecraft_version")}:${project.property("geckolib_version")}")
 
     compileOnly("mezz.jei:jei-${project.property("minecraft_version")}-neoforge-api:${project.property("jei_version")}")
     runtimeOnly("mezz.jei:jei-${project.property("minecraft_version")}-neoforge:${project.property("jei_version")}")
@@ -112,6 +137,20 @@ dependencies {
 
     compileOnly("maven.modrinth:jade:${project.property("jade_version")}")
     runtimeOnly("maven.modrinth:jade:${project.property("jade_version")}")
+
+    // lombok - 需要同时配置compileOnly和annotationProcessor
+    compileOnly("org.projectlombok:lombok:${project.property("lombok_version")}")
+    annotationProcessor("org.projectlombok:lombok:${project.property("lombok_version")}")
+
+    // hutools - 配置运行时类路径
+    compileOnly("cn.hutool:hutool-core:${project.property("hutool_version")}")
+    runtimeOnly("cn.hutool:hutool-core:${project.property("hutool_version")}")
+    "additionalRuntimeClasspath"("cn.hutool:hutool-core:${project.property("hutool_version")}")
+    jarJar("cn.hutool:hutool-core:${project.property("hutool_version")}")
+
+
+    
+    
 
 }
 
@@ -155,6 +194,10 @@ publishing {
 
 tasks.withType<JavaCompile>().configureEach {
     options.encoding = "UTF-8" // Use the UTF-8 charset for Java compilation
+    // 为Lombok配置编译参数
+    options.compilerArgs.addAll(listOf(
+        "-parameters"
+    ))
 }
 
 idea {
