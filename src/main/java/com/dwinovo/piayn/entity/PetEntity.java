@@ -110,7 +110,7 @@ public class PetEntity extends TamableAnimal implements GeoEntity{
     private MenuProvider createMenuProvider() {
         return new SimpleMenuProvider(
             (containerId, playerInventory, player) -> 
-                new com.dwinovo.piayn.client.gui.container.PetContainerMenu(containerId, playerInventory, this),
+                new com.dwinovo.piayn.client.gui.screen.container.PetContainerMenu(containerId, playerInventory, this),
             Component.literal(PIAYNLoader.getModelNameById(this.getModelID()))
         );
     }

@@ -1,4 +1,4 @@
-package com.dwinovo.piayn.client.gui.container;
+package com.dwinovo.piayn.client.gui.screen.container;
 
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Inventory;
@@ -49,12 +49,12 @@ public class PetContainerMenu extends AbstractContainerMenu {
     }
     public void addPetSlots(Container container){
         // 添加自定义生物物品槽 (物品槽坐标为 x=8, y=18)
-        this.addSlot(new Slot(container, 0, 8, 18)); 
+        this.addSlot(new Slot(container, 0, 8, 34)); 
         // 添加自定义生物物品槽 (物品槽坐标为 x=80, y=20)
         for (int row = 0; row < 3; ++row) {
             for (int col = 0; col < 5; ++col) {
                 int x = 80 + col * 18;  // 每个物品槽宽度为18
-                int y = 18 + row * 18;  // 每个物品槽高度为18
+                int y = 34 + row * 18;  // 每个物品槽高度为18
                 this.addSlot(new Slot(container, col + row * 5+1, x, y));
             }
         }
@@ -68,7 +68,7 @@ public class PetContainerMenu extends AbstractContainerMenu {
         // 图片偏移
         int x_offset = 8; 
         // 图片偏移
-        int y_offset = 84; 
+        int y_offset = 100; 
         // 添加玩家背包槽位
         for (int row = 0; row < 3; ++row) {
             // 添加玩家背包槽位

@@ -6,7 +6,7 @@ import net.neoforged.neoforge.common.extensions.IMenuTypeExtension;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import java.util.function.Supplier;
 
-import com.dwinovo.piayn.client.gui.container.PetContainerMenu;
+import com.dwinovo.piayn.client.gui.screen.container.PetContainerMenu;
 
 /**
  * 菜单类型初始化类

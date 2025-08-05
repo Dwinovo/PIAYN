@@ -17,10 +17,10 @@ import software.bernie.geckolib.model.data.EntityModelData;
 
 public class PetEntityModel extends GeoModel<PetEntity>{
 
-    private static final ResourceLocation DEFAULT_MODEL_LOCATION = ResourceLocation.fromNamespaceAndPath(PIAYN.MOD_ID, "geo/entity/wusaqi.geo.json");
+    private static final ResourceLocation DEFAULT_MODEL_LOCATION = ResourceLocation.fromNamespaceAndPath(PIAYN.MOD_ID, "geo/entity/usagi.geo.json");
     private static final ResourceLocation PIAYN_MODEL_LOCATION = ResourceLocation.fromNamespaceAndPath(PIAYN.MOD_ID, "geo/entity/piayn.geo.json");
 
-    private static final ResourceLocation DEFAULT_ANIMATION_LOCATION = ResourceLocation.fromNamespaceAndPath(PIAYN.MOD_ID, "animations/entity/wusaqi.animation.json");
+    private static final ResourceLocation DEFAULT_ANIMATION_LOCATION = ResourceLocation.fromNamespaceAndPath(PIAYN.MOD_ID, "animations/entity/usagi.animation.json");
     private static final ResourceLocation PIAYN_ANIMATION_LOCATION = ResourceLocation.fromNamespaceAndPath(PIAYN.MOD_ID, "animations/entity/piayn.animation.json");
     
 
@@ -43,7 +43,7 @@ public class PetEntityModel extends GeoModel<PetEntity>{
         if (PIAYNLoader.getModelDataById(model_id).isPresent()) {
             return PIAYNLoader.getModelDataById(model_id).get().getTexture();
         }
-        return ResourceLocation.fromNamespaceAndPath(PIAYN.MOD_ID, "textures/entity/wusaqi.png");
+        return ResourceLocation.fromNamespaceAndPath(PIAYN.MOD_ID, "textures/entity/usagi.png");
     }
 
     @Override

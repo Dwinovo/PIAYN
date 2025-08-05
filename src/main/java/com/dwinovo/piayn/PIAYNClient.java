@@ -1,6 +1,6 @@
 package com.dwinovo.piayn;
 
-import com.dwinovo.piayn.client.gui.container.PetContainerScreen;
+import com.dwinovo.piayn.client.gui.screen.container.PetContainerScreen;
 import com.dwinovo.piayn.client.model.PetEntityModel;
 import com.dwinovo.piayn.client.renderer.PetEnityRenderer;
 import com.dwinovo.piayn.client.resource.PIAYNLoader;
