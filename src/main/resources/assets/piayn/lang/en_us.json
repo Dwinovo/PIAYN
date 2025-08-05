@@ -5,5 +5,6 @@
   "piayn.configuration.items": "Item List",
   "piayn.configuration.logDirtBlock": "Log Dirt Block",
   "piayn.configuration.magicNumberIntroduction": "Magic Number Text",
-  "piayn.configuration.magicNumber": "Magic Number"
+  "piayn.configuration.magicNumber": "Magic Number",
+  "config.jade.plugin_piayn.pet_model_name": "Pet Model Name"
 }

@@ -3,6 +3,7 @@ package com.dwinovo.piayn;
 import org.slf4j.Logger;
 
 import com.dwinovo.piayn.init.InitEntity;
+import com.dwinovo.piayn.init.InitMenuTypes;
 import com.mojang.logging.LogUtils;
 
 import net.neoforged.bus.api.IEventBus;
@@ -24,6 +25,7 @@ public class PIAYN {
     }
     private static void initRegister(IEventBus modEventBus) {
         InitEntity.ENTITY_TYPES.register(modEventBus);
+        InitMenuTypes.MENU_TYPES.register(modEventBus);
     }
 
 
