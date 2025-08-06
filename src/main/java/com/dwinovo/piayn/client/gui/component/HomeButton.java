@@ -9,14 +9,13 @@ import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.NotNull;
 import com.dwinovo.piayn.PIAYN;
 import com.dwinovo.piayn.client.gui.screen.container.PetContainerScreen;
-import com.dwinovo.piayn.client.gui.screen.selection.model.PetModelSelectScreen;
 import com.dwinovo.piayn.entity.PetEntity;
 
 /**
- * 模型选择按钮
+ * 主页返回按钮
  */
-public class ModelSelectButton extends Button {
-    // 按钮材质路径
+public class HomeButton extends Button {
+    // 按钮材质路径 - 使用entity_container.png
     private static final ResourceLocation BUTTON_TEXTURE = 
         ResourceLocation.fromNamespaceAndPath(PIAYN.MOD_ID, "textures/gui/component/container_button.png");
     
@@ -24,50 +23,50 @@ public class ModelSelectButton extends Button {
     private static final int BUTTON_WIDTH = 16;
     private static final int BUTTON_HEIGHT = 16;
     
-    // 关联的宠物实体、父界面和主页界面
-    private final PetEntity petEntity;
-    private final Screen parentScreen;
+    // 主页界面引用（始终指向PetContainerScreen）
     private final PetContainerScreen homeScreen;
+    // 当前界面引用
+    private final Screen currentScreen;
+    // 宠物实体
+    private final PetEntity petEntity;
     
-    public ModelSelectButton(int x, int y, PetEntity petEntity, Screen parentScreen, PetContainerScreen homeScreen) {
+    
+    public HomeButton(int x, int y, PetEntity petEntity, PetContainerScreen homeScreen, Screen currentScreen) {
         super(x, y, BUTTON_WIDTH, BUTTON_HEIGHT, Component.empty(), 
-              button -> openModelSelectScreen(petEntity, parentScreen, homeScreen), DEFAULT_NARRATION);
+              button -> navigateToHome(homeScreen, currentScreen), DEFAULT_NARRATION);
         this.petEntity = petEntity;
-        this.parentScreen = parentScreen;
         this.homeScreen = homeScreen;
+        this.currentScreen = currentScreen;
     }
     
     /**
-     * 打开模型选择界面
-     * 只有当前界面不是PetModelSelectScreen时才打开
+     * 导航到主页界面
      */
-    private static void openModelSelectScreen(PetEntity petEntity, Screen parentScreen, PetContainerScreen homeScreen) {
+    private static void navigateToHome(PetContainerScreen homeScreen, Screen currentScreen) {
         Minecraft minecraft = Minecraft.getInstance();
         if (minecraft != null) {
-            // 检查当前界面是否已经是模型选择界面
-            if (!(parentScreen instanceof PetModelSelectScreen)) {
-                PetModelSelectScreen screen = new PetModelSelectScreen(petEntity, parentScreen, homeScreen);
-                minecraft.setScreen(screen);
-            }
+            if (currentScreen != homeScreen) {
+                minecraft.setScreen(homeScreen);
+            } 
         }
     }
 
     @Override
     public void renderWidget(@NotNull GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
         // 确定使用哪个材质区域（上半部分或下半部分）
-        int textureY = this.isHoveredOrFocused() ? 16 : 0; // 被点击时使用下半部分（Y=16），否则使用上半部分（Y=0）
+        int textureY = this.isHoveredOrFocused() ? 16 : 0; // 被悬停时使用下半部分（Y=16），否则使用上半部分（Y=0）
         
-        // 渲染按钮材质
+        // 渲染按钮材质 - 使用x起始为0的区域
         guiGraphics.blit(
             BUTTON_TEXTURE,     // 材质资源
             this.getX(),        // 按钮X位置
             this.getY(),        // 按钮Y位置
-            16,                  // 材质源X坐标
+            0,                  // 材质源X坐标（主页按钮使用x=0）
             textureY,           // 材质源Y坐标（0或16）
             BUTTON_WIDTH,       // 按钮宽度
             BUTTON_HEIGHT,      // 按钮高度
-            128,                // 材质总宽度（PNG文件的实际宽度）
-            32                 // 材质总高度（PNG文件的实际高度）
+            128,                // 材质总宽度（entity_container.png的实际宽度）
+            32                 // 材质总高度（entity_container.png的实际高度）
         );
     }
 

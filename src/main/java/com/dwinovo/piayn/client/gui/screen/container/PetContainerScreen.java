@@ -3,25 +3,25 @@ package com.dwinovo.piayn.client.gui.screen.container;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.gui.screens.inventory.InventoryScreen;
+import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 import org.jetbrains.annotations.NotNull;
 import com.dwinovo.piayn.PIAYN;
+import com.dwinovo.piayn.client.gui.component.IPetScreenButtons;
 import com.dwinovo.piayn.entity.PetEntity;
-import com.dwinovo.piayn.client.gui.component.ModelSelectButton;
 
 /**
  * 宠物GUI界面类
  * 负责渲染宠物的GUI界面
  */
-public class PetContainerScreen extends AbstractContainerScreen<PetContainerMenu> {
+public class PetContainerScreen extends AbstractContainerScreen<PetContainerMenu> implements IPetScreenButtons {
     // GUI纹理路径
     private static final ResourceLocation GUI_TEXTURE = 
         ResourceLocation.fromNamespaceAndPath(PIAYN.MOD_ID, "textures/gui/screen/entity_container.png");
     
     private final PetEntity petEntity;
-    private ModelSelectButton modelSelectButton;
 
     public PetContainerScreen(PetContainerMenu menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title);
@@ -42,16 +42,42 @@ public class PetContainerScreen extends AbstractContainerScreen<PetContainerMenu
         // 初始化GUI组件，如按钮等
         // 可以在这里添加按钮或其他交互元素
         
-        // 创建模型选择按钮
-        this.modelSelectButton = new ModelSelectButton(
-            this.leftPos,  // 按钮X位置（GUI右侧）
-            this.topPos,    // 按钮Y位置（GUI顶部附近）
-            this.petEntity,      // 宠物实体
-            this                 // 当前界面作为父界面
-        );
-        
-        // 将按钮添加到GUI中
-        this.addRenderableWidget(this.modelSelectButton);
+        // 使用接口提供的方法初始化宠物按钮
+        this.initPetButtons();
+    }
+    
+    // 实现PetScreenButtons接口的方法
+    @Override
+    public PetEntity getPetEntity() {
+        return this.petEntity;
+    }
+    
+    @Override
+    public int getLeftPos() {
+        return this.leftPos;
+    }
+    
+    @Override
+    public int getTopPos() {
+        return this.topPos;
+    }
+    
+    @Override
+    public Screen getScreen() {
+        return this;
+    }
+    
+    @Override
+    public PetContainerScreen getHomeScreen() {
+        return this; // PetContainerScreen本身就是主页界面
+    }
+    
+    @Override
+    public void addRenderableWidget(net.minecraft.client.gui.components.Renderable renderable) {
+        if (renderable instanceof net.minecraft.client.gui.components.events.GuiEventListener && 
+            renderable instanceof net.minecraft.client.gui.narration.NarratableEntry) {
+            super.addRenderableWidget((net.minecraft.client.gui.components.events.GuiEventListener & net.minecraft.client.gui.narration.NarratableEntry & net.minecraft.client.gui.components.Renderable) renderable);
+        }
     }
 
     @Override

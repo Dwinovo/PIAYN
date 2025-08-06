@@ -107,7 +107,7 @@ public class PetEntity extends TamableAnimal implements GeoEntity{
      * 创建菜单提供者
      * @return 菜单提供者
      */
-    private MenuProvider createMenuProvider() {
+    public MenuProvider createMenuProvider() {
         return new SimpleMenuProvider(
             (containerId, playerInventory, player) -> 
                 new com.dwinovo.piayn.client.gui.screen.container.PetContainerMenu(containerId, playerInventory, this),
