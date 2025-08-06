@@ -8,8 +8,11 @@ import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.NotNull;
 import com.dwinovo.piayn.PIAYN;
 import com.dwinovo.piayn.client.gui.component.IPetScreenButtons;
+import com.dwinovo.piayn.client.gui.component.ModelSwitchButton;
+import com.dwinovo.piayn.client.resource.PIAYNLoader;
 import com.dwinovo.piayn.client.gui.screen.container.PetContainerScreen;
 import com.dwinovo.piayn.entity.PetEntity;
+import java.util.Set;
 
 /**
  * 实体模型选择界面
@@ -50,8 +53,74 @@ public class PetModelSelectScreen extends Screen implements IPetScreenButtons {
         this.leftPos = (this.width - GUI_WIDTH) / 2;
         this.topPos = (this.height - GUI_HEIGHT) / 2;
         
-        // 使用接口提供的方法初始化宠物按钮
+        // 使用接口提供的方法初始化宠物按钮（主页按钮和模型选择按钮）
         this.initPetButtons();
+        
+        // 生成模型选择按钮
+        this.generateModelSwitchButtons();
+    }
+    
+    /**
+     * 生成模型选择按钮
+     * 根据可用的模型ID遍历生成按钮，并实现换行布局
+     */
+    private void generateModelSwitchButtons() {
+        // 获取所有可用的模型ID
+        Set<String> modelIds = PIAYNLoader.getAllModelIds();
+        
+        if (modelIds.isEmpty()) {
+            PIAYN.LOGGER.warn("No models available for model selection screen");
+            return;
+        }
+        
+        // 按钮布局参数
+        final int BUTTON_WIDTH = 60;   // 按钮宽度
+        final int BUTTON_HEIGHT = 20;  // 按钮高度
+        final int BUTTON_SPACING_X = 4; // 按钮水平间距
+        final int BUTTON_SPACING_Y = 4; // 按钮垂直间距
+        final int BUTTONS_PER_ROW = 2;  // 每行按钮数量（考虑到GUI宽度176，每行2个按钮合适）
+        
+        // 计算按钮区域的起始位置（在GUI内部，留出边距）
+        final int MARGIN_LEFT = 10;     // 左边距
+        final int MARGIN_TOP = 40;      // 顶部边距（为主页按钮和模型选择按钮留出空间）
+        
+        int startX = this.leftPos + MARGIN_LEFT;
+        int startY = this.topPos + MARGIN_TOP;
+        
+        // 遍历生成按钮
+        int index = 0;
+        for (String modelId : modelIds) {
+            // 计算当前按钮的行和列
+            int row = index / BUTTONS_PER_ROW;
+            int col = index % BUTTONS_PER_ROW;
+            
+            // 计算按钮位置
+            int buttonX = startX + col * (BUTTON_WIDTH + BUTTON_SPACING_X);
+            int buttonY = startY + row * (BUTTON_HEIGHT + BUTTON_SPACING_Y);
+            
+            // 检查是否超出GUI边界
+            if (buttonY + BUTTON_HEIGHT > this.topPos + GUI_HEIGHT - 10) {
+                // 如果超出边界，停止生成更多按钮
+                PIAYN.LOGGER.warn("Model selection area full, some models may not be displayed");
+                break;
+            }
+            
+            // 创建模型切换按钮
+            ModelSwitchButton modelButton = new ModelSwitchButton(
+                buttonX, 
+                buttonY, 
+                modelId, 
+                this.petEntity
+            );
+            
+            // 添加按钮到界面
+            this.addRenderableWidget(modelButton);
+            
+            index++;
+        }
+        
+        PIAYN.LOGGER.info("Generated {} model switch buttons for model selection screen", 
+                         Math.min(index, modelIds.size()));
     }
     
     // 实现PetScreenButtons接口的方法

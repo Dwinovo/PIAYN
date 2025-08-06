@@ -69,6 +69,11 @@ public class HomeButton extends Button {
             32                 // 材质总高度（entity_container.png的实际高度）
         );
     }
+    @Override
+    public boolean isHoveredOrFocused() {
+        // 如果当前页面是PetContainerScreen，返回true
+        return this.currentScreen instanceof PetContainerScreen || super.isHoveredOrFocused();
+    }
 
     @Override
     public void updateWidgetNarration(@NotNull net.minecraft.client.gui.narration.NarrationElementOutput narrationElementOutput) {

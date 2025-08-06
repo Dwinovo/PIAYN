@@ -26,14 +26,14 @@ public class ModelSelectButton extends Button {
     
     // 关联的宠物实体、父界面和主页界面
     private final PetEntity petEntity;
-    private final Screen parentScreen;
+    private final Screen currentScreen;
     private final PetContainerScreen homeScreen;
     
-    public ModelSelectButton(int x, int y, PetEntity petEntity, Screen parentScreen, PetContainerScreen homeScreen) {
+    public ModelSelectButton(int x, int y, PetEntity petEntity, Screen currentScreen, PetContainerScreen homeScreen) {
         super(x, y, BUTTON_WIDTH, BUTTON_HEIGHT, Component.empty(), 
-              button -> openModelSelectScreen(petEntity, parentScreen, homeScreen), DEFAULT_NARRATION);
+              button -> openModelSelectScreen(petEntity, currentScreen, homeScreen), DEFAULT_NARRATION);
         this.petEntity = petEntity;
-        this.parentScreen = parentScreen;
+        this.currentScreen = currentScreen;
         this.homeScreen = homeScreen;
     }
     
@@ -75,5 +75,10 @@ public class ModelSelectButton extends Button {
     public void updateWidgetNarration(@NotNull net.minecraft.client.gui.narration.NarrationElementOutput narrationElementOutput) {
         // 为无障碍功能提供按钮描述
         this.defaultButtonNarrationText(narrationElementOutput);
+    }
+    @Override
+    public boolean isHoveredOrFocused() {
+        // 如果当前页面是PetContainerScreen，返回true
+        return this.currentScreen instanceof PetModelSelectScreen || super.isHoveredOrFocused();
     }
 }

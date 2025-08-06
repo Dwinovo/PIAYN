@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 
 import com.dwinovo.piayn.init.InitEntity;
 import com.dwinovo.piayn.init.InitMenuTypes;
+import com.dwinovo.piayn.network.PIAYNNetworking;
 import com.mojang.logging.LogUtils;
 
 import net.neoforged.bus.api.IEventBus;
@@ -21,7 +22,8 @@ public class PIAYN {
     public PIAYN(IEventBus modEventBus, ModContainer modContainer) {
         initRegister(modEventBus);
         
-        
+        // 注册网络包处理器
+        modEventBus.addListener(PIAYNNetworking::registerPackets);
     }
     private static void initRegister(IEventBus modEventBus) {
         InitEntity.ENTITY_TYPES.register(modEventBus);
