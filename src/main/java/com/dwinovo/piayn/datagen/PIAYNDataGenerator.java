@@ -35,6 +35,8 @@ public class PIAYNDataGenerator {
             // 中文语言文件
             generator.addProvider(true, new PIAYNChineseLanguageProvider(packOutput));
             
+            // 物品模型
+            generator.addProvider(true, new PIAYNItemModelProvider(packOutput, existingFileHelper));
             
         }
         

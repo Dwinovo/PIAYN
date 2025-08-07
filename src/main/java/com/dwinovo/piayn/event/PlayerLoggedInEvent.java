@@ -14,7 +14,7 @@ import java.util.Map;
 import com.dwinovo.piayn.PIAYN;
 
 @EventBusSubscriber(modid = PIAYN.MOD_ID)
-public class PIAYNPlayerLoggedInEvent {
+public class PlayerLoggedInEvent {
     @SubscribeEvent
     public static void onPlayerJoin(PlayerEvent.PlayerLoggedInEvent event) {
         if (event.getEntity() instanceof ServerPlayer player) {

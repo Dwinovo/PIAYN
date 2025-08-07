@@ -3,6 +3,7 @@
   "entity.piayn.pet": "宠物",
   "gui.piayn.entity_model_select": "选择宠物模型",
   "gui.piayn.model_switch_button.narration": "%s模型%s",
+  "item.piayn.pet_spawn_egg": "宠物生成蛋",
   "piayn.configuration.items": "物品列表",
   "piayn.configuration.logDirtBlock": "记录泥土方块",
   "piayn.configuration.magicNumber": "魔法数字",

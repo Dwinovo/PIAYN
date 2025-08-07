@@ -7,7 +7,7 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.EntityAttributeCreationEvent;
 
 @EventBusSubscriber(modid = PIAYN.MOD_ID)
-public class PIAYNEntityAttributeCreationEvent {
+public class RegisterAttributeEvent {
     @SubscribeEvent
     public static void addEntityAttributeEvent(EntityAttributeCreationEvent event) {
         event.put(PetEntity.TYPE, PetEntity.createAttributes().build());

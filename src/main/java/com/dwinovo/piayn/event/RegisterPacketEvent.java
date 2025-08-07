@@ -10,7 +10,7 @@ import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 
 @EventBusSubscriber(modid = PIAYN.MOD_ID)
-public class PIAYNRegisterPayloadHandlersEvent {
+public class RegisterPacketEvent {
     @SubscribeEvent
     public static void registerPackets(RegisterPayloadHandlersEvent event) {
         PayloadRegistrar registrar = event.registrar(PIAYN.MOD_ID);

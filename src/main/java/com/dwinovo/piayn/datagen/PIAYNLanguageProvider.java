@@ -2,6 +2,7 @@ package com.dwinovo.piayn.datagen;
 
 import com.dwinovo.piayn.PIAYN;
 import com.dwinovo.piayn.init.InitEntity;
+import com.dwinovo.piayn.init.InitItem;
 import net.minecraft.data.PackOutput;
 import net.neoforged.neoforge.common.data.LanguageProvider;
 
@@ -33,6 +34,9 @@ public class PIAYNLanguageProvider extends LanguageProvider {
         
         // === 实体翻译 ===
         this.addEntityType(InitEntity.PET, "Pet");
+        
+        // === 物品翻译 ===
+        this.addItem(InitItem.PET_SPAWN_EGG, "Pet Spawn Egg");
         
         // === GUI翻译 ===
         // 模型选择界面

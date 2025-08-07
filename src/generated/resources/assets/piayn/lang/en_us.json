@@ -3,6 +3,7 @@
   "entity.piayn.pet": "Pet",
   "gui.piayn.entity_model_select": "Select Pet Model",
   "gui.piayn.model_switch_button.narration": "%s model %s",
+  "item.piayn.pet_spawn_egg": "Pet Spawn Egg",
   "piayn.configuration.items": "Item List",
   "piayn.configuration.logDirtBlock": "Log Dirt Block",
   "piayn.configuration.magicNumber": "Magic Number",

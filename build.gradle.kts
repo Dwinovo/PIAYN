@@ -152,10 +152,7 @@ dependencies {
     "additionalRuntimeClasspath"("cn.hutool:hutool-core:${project.property("hutool_version")}")
     jarJar("cn.hutool:hutool-core:${project.property("hutool_version")}")
 
-
     
-    
-
 }
 
 val generateModMetadata = tasks.register<ProcessResources>("generateModMetadata") {
