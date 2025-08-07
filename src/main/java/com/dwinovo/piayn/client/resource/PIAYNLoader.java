@@ -292,7 +292,7 @@ public class PIAYNLoader {
         return MODEL_DATA.keySet().stream()
             .skip((int) (MODEL_DATA.size() * Math.random()))
             .findFirst()
-            .orElseThrow(() -> new IllegalStateException("No models available"));
+            .orElse("usagi");
     }
     /**
      * 根据id获取模型数据
@@ -310,7 +310,7 @@ public class PIAYNLoader {
     public static String getModelNameById(String modelId) {
         return Optional.ofNullable(MODEL_DATA.get(modelId))
             .map(PIAYNModelData::getModelName)
-            .orElse("Unknown Model");
+            .orElse("乌萨奇");
     }
     
 }

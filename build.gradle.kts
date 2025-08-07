@@ -81,6 +81,11 @@ neoForge {
             client()
             systemProperty("neoforge.enabledGameTestNamespaces", project.property("mod_id") as String)
         }
+        create("clientDwin") {
+            client()
+            systemProperty("neoforge.enabledGameTestNamespaces", project.property("mod_id") as String)
+            programArguments.addAll("--username", "Dwinovo")
+        }
 
         create("server") {
             server()
