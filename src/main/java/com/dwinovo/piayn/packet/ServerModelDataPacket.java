@@ -1,4 +1,4 @@
-package com.dwinovo.piayn.network.packet;
+package com.dwinovo.piayn.packet;
 
 import com.dwinovo.piayn.server.resource.pojo.ServerModelData;
 import com.dwinovo.piayn.client.resource.ClientModelDataManager;
@@ -71,7 +71,7 @@ public record ServerModelDataPacket(
             ServerModelData serverModelData = packet.toServerModelData();
             
             // 使用ClientModelDataManager处理模型数据
-            boolean success = ClientModelDataManager.processServerModelData(serverModelData);
+            ClientModelDataManager.processServerModelData(serverModelData);
             
         });
     }

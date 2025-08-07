@@ -1,21 +1,17 @@
-package com.dwinovo.piayn.network;
+package com.dwinovo.piayn.event;
 
+import com.dwinovo.piayn.PIAYN;
+import com.dwinovo.piayn.packet.ModelSwitchPacket;
+import com.dwinovo.piayn.packet.ServerModelDataPacket;
+
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
-import com.dwinovo.piayn.PIAYN;
-import com.dwinovo.piayn.network.packet.ModelSwitchPacket;
-import com.dwinovo.piayn.network.packet.ServerModelDataPacket;
 
-/**
- * PIAYN模组网络通信管理类
- * 负责注册和管理所有网络包
- */
-public class PIAYNNetworking {
-    
-    /**
-     * 注册网络包处理器
-     * @param event 注册事件
-     */
+@EventBusSubscriber(modid = PIAYN.MOD_ID)
+public class PIAYNRegisterPayloadHandlersEvent {
+    @SubscribeEvent
     public static void registerPackets(RegisterPayloadHandlersEvent event) {
         PayloadRegistrar registrar = event.registrar(PIAYN.MOD_ID);
         
@@ -25,14 +21,11 @@ public class PIAYNNetworking {
             ModelSwitchPacket.STREAM_CODEC,
             ModelSwitchPacket::handleServer
         );
-        
-        // 注册服务端模型数据包
         registrar.playToClient(
             ServerModelDataPacket.TYPE,
             ServerModelDataPacket.STREAM_CODEC,
             ServerModelDataPacket::handleClient
         );
-        
-        PIAYN.LOGGER.info("PIAYN network packets registered successfully");
+    
     }
 }

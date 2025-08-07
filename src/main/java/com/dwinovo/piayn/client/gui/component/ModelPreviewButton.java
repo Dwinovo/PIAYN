@@ -10,10 +10,10 @@ import net.minecraft.resources.ResourceLocation;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.jetbrains.annotations.NotNull;
 import com.dwinovo.piayn.PIAYN;
-import com.dwinovo.piayn.client.cache.ModelPreviewCache;
 import com.dwinovo.piayn.client.resource.ClientModelDataManager;
+import com.dwinovo.piayn.client.resource.cache.ModelPreviewCache;
 import com.dwinovo.piayn.entity.PetEntity;
-import com.dwinovo.piayn.network.packet.ModelSwitchPacket;
+import com.dwinovo.piayn.packet.ModelSwitchPacket;
 
 /**
  * 模型预览按钮组件

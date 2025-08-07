@@ -31,6 +31,12 @@ public class ServerModelDataLoader {
     public static Map<String, ServerModelData> getModelDataMap() {
         return new ConcurrentHashMap<>(MODEL_DATA);
     }
+    /**
+     * 清空服务器模型数据
+     */
+    public static void clearModelData() {
+        MODEL_DATA.clear();
+    }
     
     /**
      * 根据模型ID获取模型数据

@@ -1,4 +1,4 @@
-package com.dwinovo.piayn.network.packet;
+package com.dwinovo.piayn.packet;
 
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.FriendlyByteBuf;

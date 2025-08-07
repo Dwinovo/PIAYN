@@ -90,7 +90,7 @@ public class PetEntity extends TamableAnimal implements GeoEntity{
     public void tick() {
         
         super.tick();
-        LOGGER.debug("mainHandItem: {}", this.getMainHandItem());
+        
     }
 
     /**

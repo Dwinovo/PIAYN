@@ -1,10 +1,9 @@
 package com.dwinovo.piayn;
 
-import com.dwinovo.piayn.client.cache.ModelPreviewCache;
 import com.dwinovo.piayn.client.gui.screen.container.PetContainerScreen;
 import com.dwinovo.piayn.client.model.PetEntityModel;
 import com.dwinovo.piayn.client.renderer.PetEnityRenderer;
-
+import com.dwinovo.piayn.client.resource.cache.ModelPreviewCache;
 import com.dwinovo.piayn.init.InitEntity;
 import com.dwinovo.piayn.init.InitMenuTypes;
 import net.neoforged.api.distmarker.Dist;
@@ -30,25 +29,21 @@ public class PIAYNClient {
 
     @SubscribeEvent
 	public static void registerRenderers(final EntityRenderersEvent.RegisterRenderers event) {
-		/*
-		 * 注册渲染器
-		 */
+		//注册渲染器
 		event.registerEntityRenderer(InitEntity.PET.get(), context -> new PetEnityRenderer(context, new PetEntityModel()));
 	}
 
     @SubscribeEvent
     public static void onClientSetup(final InterModProcessEvent event) {
-        //PIAYNLoader.ModelDataLoadingEnterPoint();
-        // 初始化实体预览缓存系统
+    
         ModelPreviewCache.getInstance();
 
     }
 
     @SubscribeEvent
     public static void registerScreens(final RegisterMenuScreensEvent event) {
-        /*
-         * 注册GUI界面
-         */
+        
+        //注册GUI界面
         event.register(InitMenuTypes.PET_MENU.get(), PetContainerScreen::new);
     }
 

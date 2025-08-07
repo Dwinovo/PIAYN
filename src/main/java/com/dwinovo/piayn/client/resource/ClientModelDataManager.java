@@ -42,7 +42,7 @@ public class ClientModelDataManager {
      * 客户端模型数据缓存
      * Key: 模型ID, Value: 客户端模型数据
      */
-    private static final Map<String, ClientModelData> MODEL_DATA_CACHE = new ConcurrentHashMap<>();
+    private static final Map<String, ClientModelData> MODEL_DATA = new ConcurrentHashMap<>();
     
     /**
      * 处理服务端模型数据，转换为客户端模型数据并缓存
@@ -83,7 +83,7 @@ public class ClientModelDataManager {
             );
             
             // 存储到缓存
-            MODEL_DATA_CACHE.put(modelId, clientModelData);
+            MODEL_DATA.put(modelId, clientModelData);
             
             LOGGER.info("Successfully processed and cached model: {} ({})", modelName, modelId);
             return true;
@@ -183,7 +183,7 @@ public class ClientModelDataManager {
      * @return 模型ID集合
      */
     public static Set<String> getAllModelIds() {
-        return Set.copyOf(MODEL_DATA_CACHE.keySet());
+        return Set.copyOf(MODEL_DATA.keySet());
     }
     
     /**
@@ -197,7 +197,7 @@ public class ClientModelDataManager {
             LOGGER.warn("Model ID is null or empty");
             return Optional.empty();
         }
-        return Optional.ofNullable(MODEL_DATA_CACHE.get(modelId));
+        return Optional.ofNullable(MODEL_DATA.get(modelId));
     }
     
     /**
@@ -218,7 +218,7 @@ public class ClientModelDataManager {
      * @return 随机模型ID，如果没有模型则返回默认值
      */
     public static String getRandomModelId() {
-        Set<String> modelIds = MODEL_DATA_CACHE.keySet();
+        Set<String> modelIds = MODEL_DATA.keySet();
         return modelIds.stream()
             .skip((int) (modelIds.size() * Math.random()))
             .findFirst()
@@ -232,7 +232,7 @@ public class ClientModelDataManager {
      * @return 是否存在
      */
     public static boolean hasModel(String modelId) {
-        return modelId != null && MODEL_DATA_CACHE.containsKey(modelId);
+        return modelId != null && MODEL_DATA.containsKey(modelId);
     }
     
     /**
@@ -241,14 +241,14 @@ public class ClientModelDataManager {
      * @return 模型数量
      */
     public static int getModelCount() {
-        return MODEL_DATA_CACHE.size();
+        return MODEL_DATA.size();
     }
     
     /**
      * 清空所有缓存的模型数据
      */
     public static void clearCache() {
-        MODEL_DATA_CACHE.clear();
+        MODEL_DATA.clear();
         LOGGER.info("Cleared all cached model data");
     }
 }
