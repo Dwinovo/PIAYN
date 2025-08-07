@@ -40,11 +40,7 @@ public class PIAYNDataGenerator {
         
         // 注册服务端数据生成器
         if (event.includeServer()) {
-            // 这里可以添加其他服务端数据生成器，如：
-            // - 配方生成器
-            // - 战利品表生成器
-            // - 标签生成器
-            // - 进度生成器
+            
             
            
         }

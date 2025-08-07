@@ -68,7 +68,7 @@ public record ModelSwitchPacket(int petEntityId, String targetModelId) implement
             petEntity.setModelID(targetModelId);
             // 播放羊毛方块放置声音
             player.serverLevel().playSound(null, petEntity.getX(), petEntity.getY(), petEntity.getZ(), 
-                SoundEvents.WOOL_PLACE, SoundSource.NEUTRAL, 1.0F, 1.0F);
+                SoundEvents.WOOL_PLACE, SoundSource.NEUTRAL, 2.0F, 1.0F);
             // 播放粒子效果 - 在实体周围生成多个粒子
             player.serverLevel().sendParticles(ParticleTypes.CLOUD, 
                     petEntity.getX(), petEntity.getEyeY(), petEntity.getZ(), 

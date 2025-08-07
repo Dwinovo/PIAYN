@@ -1,15 +1,12 @@
 package com.dwinovo.piayn.entity;
 
 
-import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.sounds.SoundEvents;
-import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.AgeableMob;
@@ -22,6 +19,7 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.SimpleMenuProvider;
 import net.minecraft.world.SimpleContainer;
@@ -81,20 +79,18 @@ public class PetEntity extends TamableAnimal implements GeoEntity{
     @Override
     public InteractionResult mobInteract(Player player, InteractionHand hand) {
         if (hand == InteractionHand.MAIN_HAND) {
-            if (this.level() instanceof ServerLevel serverLevel) {
-                // 检查玩家是否潜行
-                if (player.isShiftKeyDown()) {
-                    // 潜行右键：切换模型并且播放音效和粒子
-                    this.setModelID(ClientModelDataManager.getRandomModelId());
-                    
-                } else {
-                    // 普通右键：打开GUI
-                    player.openMenu(this.createMenuProvider(), buf -> buf.writeInt(this.getId()));
-                }
+            if (this.level() instanceof ServerLevel) {
+                player.openMenu(this.createMenuProvider(), buf -> buf.writeInt(this.getId()));
             }
         }
-        
         return InteractionResult.SUCCESS;
+    }
+
+    @Override
+    public void tick() {
+        
+        super.tick();
+        LOGGER.debug("mainHandItem: {}", this.getMainHandItem());
     }
 
     /**
@@ -167,6 +163,28 @@ public class PetEntity extends TamableAnimal implements GeoEntity{
     public PetContainerHandler getContainerHandler() {
         return containerHandler;
     }
+    
+    /**
+     * 获取主手物品
+     * @return 主手物品
+     */
+    public ItemStack getMainHandItem() {
+        return this.getItemBySlot(EquipmentSlot.MAINHAND);
+    }
+    
+    /**
+     * 设置主手物品
+     * @param itemStack 要设置的物品
+     */
+    public void setMainHandItem(ItemStack itemStack) {
+        this.setItemSlot(EquipmentSlot.MAINHAND, itemStack);
+        // 同步到容器第0号槽
+        if (this.containerHandler != null && this.containerHandler.getContainer() != null) {
+            this.containerHandler.getContainer().setItem(0, itemStack.copy());
+        }
+    }
+    
+    
     
 
     /**

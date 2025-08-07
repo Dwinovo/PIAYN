@@ -195,6 +195,10 @@ public class ModelPreviewButton extends Button {
             TEXTURE_HEIGHT
         );
     }
+    @Override
+    public boolean isHoveredOrFocused() {
+        return super.isHoveredOrFocused()||this.isCurrentModel();
+    }
     
     /**
      * 渲染实体预览

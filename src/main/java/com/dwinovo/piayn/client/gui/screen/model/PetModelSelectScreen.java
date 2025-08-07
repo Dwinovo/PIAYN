@@ -91,7 +91,7 @@ public class PetModelSelectScreen extends Screen implements IPetScreenButtons {
         int index = 0;
         for (String modelId : modelIds) {
             if (index >= MAX_MODELS_TO_DISPLAY) {
-                PIAYN.LOGGER.info("Reached maximum display limit of {} models, remaining models will not be shown", MAX_MODELS_TO_DISPLAY);
+                PIAYN.LOGGER.warn("Reached maximum display limit of {} models, remaining models will not be shown", MAX_MODELS_TO_DISPLAY);
                 break;
             }
             
@@ -117,9 +117,6 @@ public class PetModelSelectScreen extends Screen implements IPetScreenButtons {
             
             index++;
         }
-        
-        PIAYN.LOGGER.info("Generated {} model switch buttons in {}x{} grid layout", 
-                         index, GRID_ROWS, GRID_COLUMNS);
     }
     
     // 实现PetScreenButtons接口的方法

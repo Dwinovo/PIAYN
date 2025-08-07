@@ -4,7 +4,6 @@ import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.util.ZipUtil;
 import com.mojang.logging.LogUtils;
 import org.slf4j.Logger;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -19,6 +18,7 @@ public class ServerModelDataInitializer {
     
     private static final Logger LOGGER = LogUtils.getLogger();
     private static final Path DATA_PATH = Paths.get(System.getProperty("user.dir"), "config", "piayn", "models");
+    private static final String MODEL_DATA_PATH = "/assets/piayn/model_data.zip";
     /**
      * 初始化模型目录，如果目录为空或不存在，则从内置资源解压默认模型数据
      */
@@ -62,11 +62,11 @@ public class ServerModelDataInitializer {
      * @param targetDir 目标目录
      */
     private static void extractDefaultModelData(File targetDir) {
-        String zipResourcePath = "/assets/piayn/model_data.zip";
         
-        try (InputStream zipStream = ServerModelDataInitializer.class.getResourceAsStream(zipResourcePath)) {
+        
+        try (InputStream zipStream = ServerModelDataInitializer.class.getResourceAsStream(MODEL_DATA_PATH)) {
             if (zipStream == null) {
-                LOGGER.warn("failed to find default model data file: {}", zipResourcePath);
+                LOGGER.warn("failed to find default model data file: {}", MODEL_DATA_PATH);
                 return;
             }
             // 创建临时文件
@@ -79,9 +79,9 @@ public class ServerModelDataInitializer {
             // 清理临时文件
             FileUtil.del(tempZipFile);
         } catch (IOException e) {
-            LOGGER.error("解压默认模型数据时发生IO错误", e);
+            LOGGER.error("failed to extract default model data", e);
         } catch (Exception e) {
-            LOGGER.error("解压默认模型数据时发生未知错误", e);
+            LOGGER.error("failed to extract default model data", e);
         }
     }
 }

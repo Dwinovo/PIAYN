@@ -7,6 +7,8 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
+
+import com.dwinovo.piayn.client.gui.screen.container.slot.PetMainHandSlot;
 import com.dwinovo.piayn.entity.PetEntity;
 import com.dwinovo.piayn.init.InitMenuTypes;
 
@@ -48,9 +50,8 @@ public class PetContainerMenu extends AbstractContainerMenu {
                this.petEntity.distanceToSqr(player) <= 64.0D;
     }
     public void addPetSlots(Container container){
-        // 添加自定义生物物品槽 (物品槽坐标为 x=8, y=18)
-        this.addSlot(new Slot(container, 0, 8, 34)); 
-        // 添加自定义生物物品槽 (物品槽坐标为 x=80, y=20)
+        // 第0号槽使用PetMainHandSlot，与宠物主手同步
+        this.addSlot(new PetMainHandSlot(container, 0, 8, 34, this.petEntity)); 
         for (int row = 0; row < 3; ++row) {
             for (int col = 0; col < 5; ++col) {
                 int x = 80 + col * 18;  // 每个物品槽宽度为18
