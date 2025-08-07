@@ -9,7 +9,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 import org.jetbrains.annotations.NotNull;
 import com.dwinovo.piayn.PIAYN;
-import com.dwinovo.piayn.client.gui.component.IPetScreenButtons;
+import com.dwinovo.piayn.client.gui.screen.IPetScreenButtons;
 import com.dwinovo.piayn.entity.PetEntity;
 
 /**
@@ -84,24 +84,6 @@ public class PetContainerScreen extends AbstractContainerScreen<PetContainerMenu
     public void render(@NotNull GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
         // 先渲染背景
         super.render(guiGraphics, mouseX, mouseY, partialTick);
-        // 然后渲染工具提示
-        this.renderTooltip(guiGraphics, mouseX, mouseY);
-    }
-
-    @Override
-    protected void renderLabels(@NotNull GuiGraphics guiGraphics, int mouseX, int mouseY) {
-        // 渲染容器标题（宠物名称或自定义标题）
-        guiGraphics.drawString(this.font, this.title, this.titleLabelX, this.titleLabelY, 4210752, false);
-        
-        // 渲染玩家物品栏标签
-        guiGraphics.drawString(this.font, this.playerInventoryTitle, this.inventoryLabelX, this.inventoryLabelY, 4210752, false);
-    }
-
-    @Override
-    protected void renderBg(@NotNull GuiGraphics guiGraphics, float partialTick, int mouseX, int mouseY) {
-        // 渲染GUI背景纹理
-        guiGraphics.blit(GUI_TEXTURE, this.leftPos, this.topPos, 0, 0, this.imageWidth, this.imageHeight);
-        
         // 在GUI中渲染宠物实体，跟随鼠标转动
         if (this.petEntity != null) {
             // 定义实体渲染区域 (在GUI左侧预留的空间)
@@ -123,6 +105,25 @@ public class PetContainerScreen extends AbstractContainerScreen<PetContainerMenu
                 this.petEntity         // 要渲染的宠物实体
             );
         }
+        // 然后渲染工具提示
+        this.renderTooltip(guiGraphics, mouseX, mouseY);
+    }
+
+    @Override
+    protected void renderLabels(@NotNull GuiGraphics guiGraphics, int mouseX, int mouseY) {
+        // 渲染容器标题（宠物名称或自定义标题）
+        guiGraphics.drawString(this.font, this.title, this.titleLabelX, this.titleLabelY, 4210752, false);
+        
+        // 渲染玩家物品栏标签
+        guiGraphics.drawString(this.font, this.playerInventoryTitle, this.inventoryLabelX, this.inventoryLabelY, 4210752, false);
+    }
+
+    @Override
+    protected void renderBg(@NotNull GuiGraphics guiGraphics, float partialTick, int mouseX, int mouseY) {
+        // 渲染GUI背景纹理
+        guiGraphics.blit(GUI_TEXTURE, this.leftPos, this.topPos, 0, 0, this.imageWidth, this.imageHeight);
+        
+        
     }
 
     

@@ -1,4 +1,4 @@
-package com.dwinovo.piayn.entity.container;
+package com.dwinovo.piayn.entity.container.impl;
 
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.SimpleContainer;
@@ -7,6 +7,8 @@ import net.minecraft.core.NonNullList;
 import net.minecraft.world.ContainerHelper;
 import net.minecraft.core.HolderLookup;
 import org.slf4j.Logger;
+
+import com.dwinovo.piayn.entity.container.IContainerManipulatable;
 import com.mojang.logging.LogUtils;
 
 /**

@@ -1,0 +1,15 @@
+{
+  "config.jade.plugin_piayn.pet_model_name": "宠物模型名称",
+  "entity.piayn.pet": "宠物",
+  "gui.piayn.entity_model_select": "选择宠物模型",
+  "gui.piayn.model_switch_button.narration": "%s模型%s",
+  "piayn.configuration.items": "物品列表",
+  "piayn.configuration.logDirtBlock": "记录泥土方块",
+  "piayn.configuration.magicNumber": "魔法数字",
+  "piayn.configuration.magicNumberIntroduction": "魔法数字文本",
+  "piayn.configuration.section.piayn.common.toml": "宠物就是你的全部 配置",
+  "piayn.configuration.section.piayn.common.toml.title": "宠物就是你的全部 配置",
+  "piayn.configuration.title": "宠物就是你的全部 配置",
+  "status.piayn.available": "可用",
+  "status.piayn.selected": "已选择"
+}

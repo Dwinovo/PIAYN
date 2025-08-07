@@ -1,7 +1,9 @@
-package com.dwinovo.piayn.client.gui.component;
+package com.dwinovo.piayn.client.gui.screen;
 
 import net.minecraft.client.gui.screens.Screen;
 import com.dwinovo.piayn.entity.PetEntity;
+import com.dwinovo.piayn.client.gui.component.HomeButton;
+import com.dwinovo.piayn.client.gui.component.ModelSelectButton;
 import com.dwinovo.piayn.client.gui.screen.container.PetContainerScreen;
 
 /**
@@ -61,8 +63,8 @@ public interface IPetScreenButtons {
             getLeftPos() + 16,  // 按钮X位置（主页按钮右侧）
             getTopPos(),        // 按钮Y位置（GUI顶部）
             getPetEntity(),     // 宠物实体
-            getScreen(),        // 当前界面作为父界面
-            getHomeScreen()     // 主页界面引用
+            getHomeScreen(),    // 主页界面引用
+            getScreen()         // 当前界面作为父界面
         );
         
         // 将按钮添加到GUI中

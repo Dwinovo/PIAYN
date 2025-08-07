@@ -66,7 +66,7 @@ public class HomeButton extends Button {
             BUTTON_WIDTH,       // 按钮宽度
             BUTTON_HEIGHT,      // 按钮高度
             128,                // 材质总宽度（entity_container.png的实际宽度）
-            32                 // 材质总高度（entity_container.png的实际高度）
+            128                 // 材质总高度（entity_container.png的实际高度）
         );
     }
     @Override

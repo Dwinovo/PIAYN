@@ -33,7 +33,7 @@ import software.bernie.geckolib.loading.object.GeometryTree;
 public class PIAYNLoader {
     public static final Logger LOGGER = LogUtils.getLogger();
     private static final Map<String, PIAYNModelData> MODEL_DATA = new ConcurrentHashMap<>();
-    private static final Path DATA_PATH = Paths.get(System.getProperty("user.dir"), "piayn", "models");
+    private static final Path DATA_PATH = Paths.get(System.getProperty("user.dir"), "config", "piayn", "models");
 
     /**
      * 客户端资源加载入口

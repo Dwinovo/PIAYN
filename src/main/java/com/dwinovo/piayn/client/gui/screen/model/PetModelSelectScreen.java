@@ -1,4 +1,4 @@
-package com.dwinovo.piayn.client.gui.screen.selection.model;
+package com.dwinovo.piayn.client.gui.screen.model;
 
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
@@ -6,10 +6,11 @@ import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.NotNull;
+import com.mojang.blaze3d.platform.InputConstants;
 import com.dwinovo.piayn.PIAYN;
-import com.dwinovo.piayn.client.gui.component.IPetScreenButtons;
-import com.dwinovo.piayn.client.gui.component.ModelSwitchButton;
+import com.dwinovo.piayn.client.gui.component.ModelPreviewButton;
 import com.dwinovo.piayn.client.resource.PIAYNLoader;
+import com.dwinovo.piayn.client.gui.screen.IPetScreenButtons;
 import com.dwinovo.piayn.client.gui.screen.container.PetContainerScreen;
 import com.dwinovo.piayn.entity.PetEntity;
 import java.util.Set;
@@ -33,15 +34,14 @@ public class PetModelSelectScreen extends Screen implements IPetScreenButtons {
     
     // 关联的宠物实体
     private final PetEntity petEntity;
-    // 父界面（用于返回）
-    private final Screen parentScreen;
+
     // 主页界面引用
     private final PetContainerScreen homeScreen;
 
-    public PetModelSelectScreen(PetEntity petEntity, Screen parentScreen, PetContainerScreen homeScreen) {
+    public PetModelSelectScreen(PetEntity petEntity, PetContainerScreen homeScreen) {
         super(Component.translatable("gui.piayn.entity_model_select"));
         this.petEntity = petEntity;
-        this.parentScreen = parentScreen;
+
         this.homeScreen = homeScreen;
     }
 
@@ -57,14 +57,14 @@ public class PetModelSelectScreen extends Screen implements IPetScreenButtons {
         this.initPetButtons();
         
         // 生成模型选择按钮
-        this.generateModelSwitchButtons();
+        this.addShowModelButton();
     }
     
     /**
      * 生成模型选择按钮
-     * 根据可用的模型ID遍历生成按钮，并实现换行布局
+     * 根据可用的模型ID遍历生成按钮，并实现5行5列的网格布局
      */
-    private void generateModelSwitchButtons() {
+    private void addShowModelButton() {
         // 获取所有可用的模型ID
         Set<String> modelIds = PIAYNLoader.getAllModelIds();
         
@@ -73,44 +73,43 @@ public class PetModelSelectScreen extends Screen implements IPetScreenButtons {
             return;
         }
         
-        // 按钮布局参数
-        final int BUTTON_WIDTH = 60;   // 按钮宽度
-        final int BUTTON_HEIGHT = 20;  // 按钮高度
-        final int BUTTON_SPACING_X = 4; // 按钮水平间距
-        final int BUTTON_SPACING_Y = 4; // 按钮垂直间距
-        final int BUTTONS_PER_ROW = 2;  // 每行按钮数量（考虑到GUI宽度176，每行2个按钮合适）
+        // 网格布局参数（根据新表格更新为4行5列）
+        final int MAX_MODELS_TO_DISPLAY = 20;  // 最多显示20个模型（4行5列）
+        final int GRID_ROWS = 4;               // 网格行数（根据表格更新为4行）
+        final int GRID_COLUMNS = 5;            // 网格列数（保持5列）
         
-        // 计算按钮区域的起始位置（在GUI内部，留出边距）
-        final int MARGIN_LEFT = 10;     // 左边距
-        final int MARGIN_TOP = 40;      // 顶部边距（为主页按钮和模型选择按钮留出空间）
+        // 按钮布局参数（根据坐标表格的左上角坐标计算）
+        // 按钮间的距离（下一个按钮左上角 - 当前按钮左上角）
+        final int BUTTON_STEP_X = 34;  // 水平步长（38-4=34）
+        final int BUTTON_STEP_Y = 39;  // 垂直步长（64-25=39）
         
-        int startX = this.leftPos + MARGIN_LEFT;
-        int startY = this.topPos + MARGIN_TOP;
+        // 按钮区域起始位置（根据新表格的第一个坐标）
+        final int BUTTON_START_X = this.leftPos + 4;   // 第一个按钮左上角X坐标
+        final int BUTTON_START_Y = this.topPos + 25;   // 第一个按钮左上角Y坐标
         
-        // 遍历生成按钮
+        // 遍历生成按钮，最多生成20个（4行5列）
         int index = 0;
         for (String modelId : modelIds) {
-            // 计算当前按钮的行和列
-            int row = index / BUTTONS_PER_ROW;
-            int col = index % BUTTONS_PER_ROW;
-            
-            // 计算按钮位置
-            int buttonX = startX + col * (BUTTON_WIDTH + BUTTON_SPACING_X);
-            int buttonY = startY + row * (BUTTON_HEIGHT + BUTTON_SPACING_Y);
-            
-            // 检查是否超出GUI边界
-            if (buttonY + BUTTON_HEIGHT > this.topPos + GUI_HEIGHT - 10) {
-                // 如果超出边界，停止生成更多按钮
-                PIAYN.LOGGER.warn("Model selection area full, some models may not be displayed");
+            if (index >= MAX_MODELS_TO_DISPLAY) {
+                PIAYN.LOGGER.info("Reached maximum display limit of {} models, remaining models will not be shown", MAX_MODELS_TO_DISPLAY);
                 break;
             }
             
+            // 计算当前按钮在5x5网格中的行和列
+            int row = index / GRID_COLUMNS;
+            int col = index % GRID_COLUMNS;
+            
+            // 计算按钮位置（根据表格坐标直接计算）
+            int buttonX = BUTTON_START_X + col * BUTTON_STEP_X;
+            int buttonY = BUTTON_START_Y + row * BUTTON_STEP_Y;
+            
             // 创建模型切换按钮
-            ModelSwitchButton modelButton = new ModelSwitchButton(
+            ModelPreviewButton modelButton = new ModelPreviewButton(
                 buttonX, 
                 buttonY, 
                 modelId, 
-                this.petEntity
+                this.petEntity,
+                this
             );
             
             // 添加按钮到界面
@@ -119,8 +118,8 @@ public class PetModelSelectScreen extends Screen implements IPetScreenButtons {
             index++;
         }
         
-        PIAYN.LOGGER.info("Generated {} model switch buttons for model selection screen", 
-                         Math.min(index, modelIds.size()));
+        PIAYN.LOGGER.info("Generated {} model switch buttons in {}x{} grid layout", 
+                         index, GRID_ROWS, GRID_COLUMNS);
     }
     
     // 实现PetScreenButtons接口的方法
@@ -159,20 +158,16 @@ public class PetModelSelectScreen extends Screen implements IPetScreenButtons {
 
     @Override
     public void render(@NotNull GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
-        
+        // 渲染按钮等组件（实体渲染由ShowModelButton负责）
         super.render(guiGraphics, mouseX, mouseY, partialTick);
-        // 渲染GUI背景纹理
-        guiGraphics.blit(GUI_TEXTURE, this.leftPos, this.topPos, 0, 0, GUI_WIDTH, GUI_HEIGHT);
-
-        
-
     }
     @Override
     public void renderBackground(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
-        // TODO Auto-generated method stub
         super.renderBackground(guiGraphics, mouseX, mouseY, partialTick);
+        // 渲染GUI背景纹理
+        guiGraphics.blit(GUI_TEXTURE, this.leftPos, this.topPos, 0, 0, GUI_WIDTH, GUI_HEIGHT);
         // 在GUI中渲染宠物实体，跟随鼠标转动
-        if (this.petEntity != null) {
+                if (this.petEntity != null) {
             // 定义实体渲染区域 (在GUI背景图片左边居中)
             // 背景图片宽176，高182，实体显示在左边80像素宽的区域内
             int entityAreaWidth = 80;         // 实体显示区域宽度
@@ -199,16 +194,27 @@ public class PetModelSelectScreen extends Screen implements IPetScreenButtons {
                 this.petEntity         // 要渲染的宠物实体
             );
         }
+        
     }
     
 
 
     @Override
-    public void onClose() {
-        // 关闭界面时返回父界面
-        if (this.minecraft != null) {
-            this.minecraft.setScreen(this.parentScreen);
+    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+        InputConstants.Key mouseKey = InputConstants.getKey(keyCode, scanCode);
+        if (super.keyPressed(keyCode, scanCode, modifiers)) {
+            return true;
+        } else if (this.minecraft.options.keyInventory.isActiveAndMatches(mouseKey)) {
+            // 按背包键（通常是E键）关闭屏幕，与官方容器界面行为一致
+            this.onClose();
+            return true;
         }
+        return false;
+    }
+
+    @Override
+    public void onClose() {
+        super.onClose();
     }
 
     @Override

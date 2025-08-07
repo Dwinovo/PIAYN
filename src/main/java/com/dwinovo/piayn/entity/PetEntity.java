@@ -25,11 +25,11 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.SimpleMenuProvider;
 import net.minecraft.world.SimpleContainer;
-import com.dwinovo.piayn.entity.container.PetContainerHandler;
 import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import com.dwinovo.piayn.client.resource.PIAYNLoader;
+import com.dwinovo.piayn.entity.container.impl.PetContainerHandler;
 import com.mojang.logging.LogUtils;
 import software.bernie.geckolib.animatable.GeoEntity;
 import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
@@ -86,13 +86,7 @@ public class PetEntity extends TamableAnimal implements GeoEntity{
                 if (player.isShiftKeyDown()) {
                     // 潜行右键：切换模型并且播放音效和粒子
                     this.setModelID(PIAYNLoader.getRandomModelId());
-                    // 播放羊毛方块放置声音
-                    serverLevel.playSound(null, this.getX(), this.getY(), this.getZ(), 
-                        SoundEvents.WOOL_PLACE, SoundSource.NEUTRAL, 1.0F, 1.0F);
-                    // 播放粒子效果 - 在实体周围生成多个粒子
-                    serverLevel.sendParticles(ParticleTypes.CLOUD, 
-                            this.getX(), this.getEyeY(), this.getZ(), 
-                            50, 0.25D, 0.25D, 0.25D, 0.15D);
+                    
                 } else {
                     // 普通右键：打开GUI
                     player.openMenu(this.createMenuProvider(), buf -> buf.writeInt(this.getId()));

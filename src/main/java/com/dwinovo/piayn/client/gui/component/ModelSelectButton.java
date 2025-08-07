@@ -9,7 +9,7 @@ import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.NotNull;
 import com.dwinovo.piayn.PIAYN;
 import com.dwinovo.piayn.client.gui.screen.container.PetContainerScreen;
-import com.dwinovo.piayn.client.gui.screen.selection.model.PetModelSelectScreen;
+import com.dwinovo.piayn.client.gui.screen.model.PetModelSelectScreen;
 import com.dwinovo.piayn.entity.PetEntity;
 
 /**
@@ -29,9 +29,9 @@ public class ModelSelectButton extends Button {
     private final Screen currentScreen;
     private final PetContainerScreen homeScreen;
     
-    public ModelSelectButton(int x, int y, PetEntity petEntity, Screen currentScreen, PetContainerScreen homeScreen) {
+    public ModelSelectButton(int x, int y, PetEntity petEntity, PetContainerScreen homeScreen, Screen currentScreen) {
         super(x, y, BUTTON_WIDTH, BUTTON_HEIGHT, Component.empty(), 
-              button -> openModelSelectScreen(petEntity, currentScreen, homeScreen), DEFAULT_NARRATION);
+              button -> openModelSelectScreen(petEntity, homeScreen, currentScreen), DEFAULT_NARRATION);
         this.petEntity = petEntity;
         this.currentScreen = currentScreen;
         this.homeScreen = homeScreen;
@@ -41,12 +41,12 @@ public class ModelSelectButton extends Button {
      * 打开模型选择界面
      * 只有当前界面不是PetModelSelectScreen时才打开
      */
-    private static void openModelSelectScreen(PetEntity petEntity, Screen parentScreen, PetContainerScreen homeScreen) {
+    private static void openModelSelectScreen(PetEntity petEntity, PetContainerScreen homeScreen, Screen parentScreen) {
         Minecraft minecraft = Minecraft.getInstance();
         if (minecraft != null) {
             // 检查当前界面是否已经是模型选择界面
             if (!(parentScreen instanceof PetModelSelectScreen)) {
-                PetModelSelectScreen screen = new PetModelSelectScreen(petEntity, parentScreen, homeScreen);
+                PetModelSelectScreen screen = new PetModelSelectScreen(petEntity, homeScreen);
                 minecraft.setScreen(screen);
             }
         }
@@ -67,7 +67,7 @@ public class ModelSelectButton extends Button {
             BUTTON_WIDTH,       // 按钮宽度
             BUTTON_HEIGHT,      // 按钮高度
             128,                // 材质总宽度（PNG文件的实际宽度）
-            32                 // 材质总高度（PNG文件的实际高度）
+            128                 // 材质总高度（PNG文件的实际高度）
         );
     }
 

@@ -1,11 +1,14 @@
 package com.dwinovo.piayn.network.packet;
 
+import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.Entity;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 import com.dwinovo.piayn.PIAYN;
@@ -62,15 +65,15 @@ public record ModelSwitchPacket(int petEntityId, String targetModelId) implement
                 return;
             }
             
-            // 在服务端切换宠物模型
-            String oldModelId = petEntity.getModelID();
             petEntity.setModelID(targetModelId);
-            
-            PIAYN.LOGGER.info("Player {} switched pet model from '{}' to '{}' for pet ID {}", 
-                player.getName().getString(), oldModelId, targetModelId, packet.petEntityId());
-            
-            // 服务端的模型切换会自动同步到所有客户端
-            // 因为PetEntity的数据同步机制会处理这个
+            // 播放羊毛方块放置声音
+            player.serverLevel().playSound(null, petEntity.getX(), petEntity.getY(), petEntity.getZ(), 
+                SoundEvents.WOOL_PLACE, SoundSource.NEUTRAL, 1.0F, 1.0F);
+            // 播放粒子效果 - 在实体周围生成多个粒子
+            player.serverLevel().sendParticles(ParticleTypes.CLOUD, 
+                    petEntity.getX(), petEntity.getEyeY(), petEntity.getZ(), 
+                    50, 0.25D, 0.25D, 0.25D, 0.15D);
+
         });
     }
 }

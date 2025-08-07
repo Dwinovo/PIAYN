@@ -1,5 +1,6 @@
 package com.dwinovo.piayn;
 
+import com.dwinovo.piayn.client.cache.ModelPreviewCache;
 import com.dwinovo.piayn.client.gui.screen.container.PetContainerScreen;
 import com.dwinovo.piayn.client.model.PetEntityModel;
 import com.dwinovo.piayn.client.renderer.PetEnityRenderer;
@@ -38,6 +39,9 @@ public class PIAYNClient {
     @SubscribeEvent
     public static void onClientSetup(final InterModProcessEvent event) {
         PIAYNLoader.clientResourceEnterPoint();
+        // 初始化实体预览缓存系统
+        ModelPreviewCache.getInstance();
+
     }
 
     @SubscribeEvent
