@@ -11,7 +11,7 @@ import net.minecraft.resources.ResourceLocation;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class PIAYNModelData {
+public class ClientModelData {
     @NonNull
     private String modelName;
     @NonNull

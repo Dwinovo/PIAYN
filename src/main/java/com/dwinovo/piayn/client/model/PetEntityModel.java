@@ -3,9 +3,8 @@ package com.dwinovo.piayn.client.model;
 
 
 import com.dwinovo.piayn.PIAYN;
-import com.dwinovo.piayn.client.resource.PIAYNLoader;
+import com.dwinovo.piayn.client.resource.ClientModelDataManager;
 import com.dwinovo.piayn.entity.PetEntity;
-
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import software.bernie.geckolib.animation.AnimationState;
@@ -28,8 +27,8 @@ public class PetEntityModel extends GeoModel<PetEntity>{
     public ResourceLocation getModelResource(PetEntity animatable) {
         String model_id = animatable.getModelID();
         
-        if (PIAYNLoader.getModelDataById(model_id).isPresent()) {
-            GeckoLibCache.getBakedModels().put(PIAYN_MODEL_LOCATION, PIAYNLoader.getModelDataById(model_id).get().getModel());
+        if (ClientModelDataManager.getModelDataById(model_id).isPresent()) {
+            GeckoLibCache.getBakedModels().put(PIAYN_MODEL_LOCATION, ClientModelDataManager.getModelDataById(model_id).get().getModel());
             return PIAYN_MODEL_LOCATION;
         }
         return DEFAULT_MODEL_LOCATION;
@@ -40,8 +39,8 @@ public class PetEntityModel extends GeoModel<PetEntity>{
     public ResourceLocation getTextureResource(PetEntity animatable) {
         String model_id = animatable.getModelID();
         
-        if (PIAYNLoader.getModelDataById(model_id).isPresent()) {
-            return PIAYNLoader.getModelDataById(model_id).get().getTexture();
+        if (ClientModelDataManager.getModelDataById(model_id).isPresent()) {
+            return ClientModelDataManager.getModelDataById(model_id).get().getTexture();
         }
         return ResourceLocation.fromNamespaceAndPath(PIAYN.MOD_ID, "textures/entity/usagi.png");
     }
@@ -50,8 +49,8 @@ public class PetEntityModel extends GeoModel<PetEntity>{
     public ResourceLocation getAnimationResource(PetEntity animatable) {
         String model_id = animatable.getModelID();
         
-        if (PIAYNLoader.getModelDataById(model_id).isPresent()) {
-            GeckoLibCache.getBakedAnimations().put(PIAYN_ANIMATION_LOCATION, PIAYNLoader.getModelDataById(model_id).get().getAnimation());
+        if (ClientModelDataManager.getModelDataById(model_id).isPresent()) {
+            GeckoLibCache.getBakedAnimations().put(PIAYN_ANIMATION_LOCATION, ClientModelDataManager.getModelDataById(model_id).get().getAnimation());
             return PIAYN_ANIMATION_LOCATION;
         }
         return DEFAULT_ANIMATION_LOCATION;

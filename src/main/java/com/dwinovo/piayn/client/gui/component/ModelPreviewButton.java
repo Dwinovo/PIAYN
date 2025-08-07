@@ -11,7 +11,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import org.jetbrains.annotations.NotNull;
 import com.dwinovo.piayn.PIAYN;
 import com.dwinovo.piayn.client.cache.ModelPreviewCache;
-import com.dwinovo.piayn.client.resource.PIAYNLoader;
+import com.dwinovo.piayn.client.resource.ClientModelDataManager;
 import com.dwinovo.piayn.entity.PetEntity;
 import com.dwinovo.piayn.network.packet.ModelSwitchPacket;
 
@@ -78,7 +78,7 @@ public class ModelPreviewButton extends Button {
               button -> switchModel(modelId, petEntity), DEFAULT_NARRATION);
         this.modelId = modelId;
         this.petEntity = petEntity;
-        this.modelName = PIAYNLoader.getModelNameById(modelId);
+        this.modelName = ClientModelDataManager.getModelNameById(modelId);
         this.currentScreen = currentScreen;
     }
     
@@ -118,7 +118,7 @@ public class ModelPreviewButton extends Button {
             return false;
         }
         
-        if (!PIAYNLoader.getModelDataById(modelId).isPresent()) {
+        if (!ClientModelDataManager.getModelDataById(modelId).isPresent()) {
             PIAYN.LOGGER.warn("Model ID not found: {}", modelId);
             return false;
         }

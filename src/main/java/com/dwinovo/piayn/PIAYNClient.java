@@ -4,7 +4,7 @@ import com.dwinovo.piayn.client.cache.ModelPreviewCache;
 import com.dwinovo.piayn.client.gui.screen.container.PetContainerScreen;
 import com.dwinovo.piayn.client.model.PetEntityModel;
 import com.dwinovo.piayn.client.renderer.PetEnityRenderer;
-import com.dwinovo.piayn.client.resource.PIAYNLoader;
+
 import com.dwinovo.piayn.init.InitEntity;
 import com.dwinovo.piayn.init.InitMenuTypes;
 import net.neoforged.api.distmarker.Dist;
@@ -38,7 +38,7 @@ public class PIAYNClient {
 
     @SubscribeEvent
     public static void onClientSetup(final InterModProcessEvent event) {
-        PIAYNLoader.clientResourceEnterPoint();
+        //PIAYNLoader.ModelDataLoadingEnterPoint();
         // 初始化实体预览缓存系统
         ModelPreviewCache.getInstance();
 

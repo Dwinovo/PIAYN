@@ -28,7 +28,7 @@ import net.minecraft.world.SimpleContainer;
 import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
-import com.dwinovo.piayn.client.resource.PIAYNLoader;
+import com.dwinovo.piayn.client.resource.ClientModelDataManager;
 import com.dwinovo.piayn.entity.container.impl.PetContainerHandler;
 import com.mojang.logging.LogUtils;
 import software.bernie.geckolib.animatable.GeoEntity;
@@ -52,7 +52,7 @@ public class PetEntity extends TamableAnimal implements GeoEntity{
         // 只在服务端生成随机模型ID
         if (!level.isClientSide()) {
             // 在服务端生成随机模型ID，会通过网络同步到客户端
-            this.entityData.set(MODEL_ID, PIAYNLoader.getRandomModelId());
+            this.entityData.set(MODEL_ID, ClientModelDataManager.getRandomModelId());
         }
     }
 
@@ -85,7 +85,7 @@ public class PetEntity extends TamableAnimal implements GeoEntity{
                 // 检查玩家是否潜行
                 if (player.isShiftKeyDown()) {
                     // 潜行右键：切换模型并且播放音效和粒子
-                    this.setModelID(PIAYNLoader.getRandomModelId());
+                    this.setModelID(ClientModelDataManager.getRandomModelId());
                     
                 } else {
                     // 普通右键：打开GUI
@@ -105,7 +105,7 @@ public class PetEntity extends TamableAnimal implements GeoEntity{
         return new SimpleMenuProvider(
             (containerId, playerInventory, player) -> 
                 new com.dwinovo.piayn.client.gui.screen.container.PetContainerMenu(containerId, playerInventory, this),
-            Component.literal(PIAYNLoader.getModelNameById(this.getModelID()))
+            Component.literal(ClientModelDataManager.getModelNameById(this.getModelID()))
         );
     }
     @Override

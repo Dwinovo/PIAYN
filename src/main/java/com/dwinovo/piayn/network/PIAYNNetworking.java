@@ -4,6 +4,7 @@ import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 import com.dwinovo.piayn.PIAYN;
 import com.dwinovo.piayn.network.packet.ModelSwitchPacket;
+import com.dwinovo.piayn.network.packet.ServerModelDataPacket;
 
 /**
  * PIAYN模组网络通信管理类
@@ -23,6 +24,13 @@ public class PIAYNNetworking {
             ModelSwitchPacket.TYPE,
             ModelSwitchPacket.STREAM_CODEC,
             ModelSwitchPacket::handleServer
+        );
+        
+        // 注册服务端模型数据包
+        registrar.playToClient(
+            ServerModelDataPacket.TYPE,
+            ServerModelDataPacket.STREAM_CODEC,
+            ServerModelDataPacket::handleClient
         );
         
         PIAYN.LOGGER.info("PIAYN network packets registered successfully");

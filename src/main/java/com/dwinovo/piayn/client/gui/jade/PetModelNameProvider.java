@@ -1,8 +1,7 @@
 package com.dwinovo.piayn.client.gui.jade;
 
-import com.dwinovo.piayn.client.resource.PIAYNLoader;
+import com.dwinovo.piayn.client.resource.ClientModelDataManager;
 import com.dwinovo.piayn.entity.PetEntity;
-
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -25,7 +24,7 @@ public enum PetModelNameProvider implements IEntityComponentProvider {
             if (modelId != null && !modelId.isEmpty()) {
                 try {
                     // 获取模型名称而不是ID
-                    String modelName = PIAYNLoader.getModelNameById(modelId);
+                    String modelName = ClientModelDataManager.getModelNameById(modelId);
                     // 清除现有内容并添加模型名称作为第一行
                     tooltip.clear();
                     tooltip.append(Component.literal(modelName).withStyle(ChatFormatting.WHITE));

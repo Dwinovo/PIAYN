@@ -89,7 +89,6 @@ neoForge {
 
         create("server") {
             server()
-            programArgument("--nogui")
             systemProperty("neoforge.enabledGameTestNamespaces", project.property("mod_id") as String)
         }
 
