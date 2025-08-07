@@ -6,6 +6,7 @@ import net.neoforged.neoforge.common.DeferredSpawnEggItem;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import java.util.function.Supplier;
 import com.dwinovo.piayn.PIAYN;
+import com.dwinovo.piayn.item.CreateStickItem;
 
 public class InitItem {
     public static final DeferredRegister<Item> ITEM = DeferredRegister.create(Registries.ITEM, PIAYN.MOD_ID);
@@ -17,4 +18,8 @@ public class InitItem {
             0x3C6997, 
             new Item.Properties()
         ));
+    
+    // 简单的普通物品，使用自定义材质，设置为不可堆叠
+    public static final Supplier<Item> CREATE_STICK = ITEM.register("create_stick", 
+        () -> new CreateStickItem(new Item.Properties().stacksTo(1)));
 }

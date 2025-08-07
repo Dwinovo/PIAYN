@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import com.dwinovo.piayn.init.InitEntity;
 import com.dwinovo.piayn.init.InitItem;
 import com.dwinovo.piayn.init.InitMenuTypes;
+import com.dwinovo.piayn.init.InitCreativeTabs;
 import com.mojang.logging.LogUtils;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
@@ -24,6 +25,7 @@ public class PIAYN {
         InitEntity.ENTITY_TYPES.register(modEventBus);
         InitItem.ITEM.register(modEventBus);
         InitMenuTypes.MENU_TYPES.register(modEventBus);
+        InitCreativeTabs.CREATIVE_MODE_TABS.register(modEventBus);
     }
     
     

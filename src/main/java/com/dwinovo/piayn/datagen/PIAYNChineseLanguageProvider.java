@@ -37,6 +37,10 @@ public class PIAYNChineseLanguageProvider extends LanguageProvider {
         
         // === 物品翻译 ===
         this.addItem(InitItem.PET_SPAWN_EGG, "宠物生成蛋");
+        this.addItem(InitItem.CREATE_STICK, "创造木棍");
+        
+        // === 创造模式标签页翻译 ===
+        this.add("itemGroup.piayn.piayn_tab", "宠物就是你所需要的");
         
         // === GUI翻译 ===
         // 模型选择界面
