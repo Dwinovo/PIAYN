@@ -1,24 +1,29 @@
 package com.dwinovo.piayn.item;
 
-import com.dwinovo.piayn.schematic.SchematicManager;
-import com.dwinovo.piayn.schematic.SchematicReader;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.item.component.CustomData;
 import net.minecraft.nbt.*;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import javax.annotation.Nonnull;
-
+import org.slf4j.Logger;
+import com.dwinovo.piayn.schem.SchemSerializer;
+import com.dwinovo.piayn.schem.pojo.StructureData;
+import com.mojang.logging.LogUtils;
 
 
 public class CreateStickItem extends Item {
+    public static final Logger LOGGER = LogUtils.getLogger();
     private static final String POS1_KEY = "pos1";
     private static final String POS2_KEY = "pos2";
     private static final String HAS_POS1_KEY = "hasPos1";
@@ -38,6 +43,35 @@ public class CreateStickItem extends Item {
     }
 
     @Override
+    public InteractionResultHolder<ItemStack> use(@Nonnull Level level, @Nonnull Player player, @Nonnull InteractionHand hand) {
+        ItemStack itemStack = player.getItemInHand(hand);
+        
+        // player 已经通过 @Nonnull 注解保证非空，移除死代码检查
+
+        CustomData customData = itemStack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY);
+        CompoundTag tag = customData.copyTag();
+        
+        // 获取当前模式，默认为圈地模式
+        int currentMode = tag.getInt(MODE_KEY);
+        
+        // 对着空气右键切换模式
+        int newMode = (currentMode == MODE_SELECT) ? MODE_PASTE : MODE_SELECT;
+        tag.putInt(MODE_KEY, newMode);
+        
+        String modeName = (newMode == MODE_SELECT) ? "§e圈地模式" : "§b粘贴模式";
+        player.sendSystemMessage(Component.literal("§a已切换到: " + modeName));
+        
+        // 如果切换到粘贴模式，自动选择test.schem
+        if (newMode == MODE_PASTE) {
+            tag.putString(SELECTED_SCHEM_KEY, "test.schem");
+            player.sendSystemMessage(Component.literal("§7已自动选择test.schem文件"));
+        }
+        
+        itemStack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
+        return InteractionResultHolder.sidedSuccess(itemStack, level.isClientSide());
+    }
+
+    @Override
     public InteractionResult useOn(@Nonnull UseOnContext context) {
         Level level = context.getLevel();
         Player player = context.getPlayer();
@@ -53,25 +87,6 @@ public class CreateStickItem extends Item {
         
         // 获取当前模式，默认为圈地模式
         int currentMode = tag.getInt(MODE_KEY);
-        
-        // 检查是否对着空气右键（切换模式）
-        if (level.getBlockState(clickedPos).isAir()) {
-            // 切换模式
-            int newMode = (currentMode == MODE_SELECT) ? MODE_PASTE : MODE_SELECT;
-            tag.putInt(MODE_KEY, newMode);
-            
-            String modeName = (newMode == MODE_SELECT) ? "§e圈地模式" : "§b粘贴模式";
-            player.sendSystemMessage(Component.literal("§a已切换到: " + modeName));
-            
-            // 如果切换到粘贴模式，自动选择test.schem
-            if (newMode == MODE_PASTE) {
-                tag.putString(SELECTED_SCHEM_KEY, "test.schem");
-                player.sendSystemMessage(Component.literal("§7已自动选择test.schem文件"));
-            }
-            
-            itemStack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
-            return InteractionResult.SUCCESS;
-        }
         
         // 根据模式执行不同操作
         if (currentMode == MODE_PASTE) {
@@ -103,21 +118,12 @@ public class CreateStickItem extends Item {
                 BlockPos pos2 = getPosition(tag, POS2_KEY);
                 
                 if (level instanceof ServerLevel serverLevel) {
-                    // 直接保存schematic，让Manager处理所有验证逻辑
-                    SchematicManager.SaveResult result = SchematicManager.saveSchematic(
-                        serverLevel, pos1, pos2, "region", player.getName().getString()
-                    );
+                     
                     
-                    if (result.success()) {
-                        player.sendSystemMessage(Component.literal("§a成功保存schematic: " + (result.filePath() != null ? result.filePath().getFileName() : "test.schem")));
-                        player.sendSystemMessage(Component.literal("§7包含 " + result.regionVolume() + " 个方块"));
-                        // 自动切换到粘贴模式
-                        tag.putInt(MODE_KEY, MODE_PASTE);
-                        tag.putString(SELECTED_SCHEM_KEY, "test.schem");
-                        player.sendSystemMessage(Component.literal("§b已自动切换到粘贴模式，现在可以右键粘贴了！"));
-                    } else {
-                        player.sendSystemMessage(Component.literal("§c保存失败: " + result.error()));
-                    }
+                    CompoundTag schemTag = SchemSerializer.serialize(new StructureData(serverLevel, pos1, pos2, "test.schem", "dwin"));
+                    LOGGER.info("schemTag: {}", schemTag);
+                    SchemSerializer.writeSchem(schemTag, "test.schem");
+                    
                 }
             }
         } else {
@@ -138,39 +144,21 @@ public class CreateStickItem extends Item {
         Level level = context.getLevel();
         Player player = context.getPlayer();
         BlockPos clickedPos = context.getClickedPos();
+        Direction clickedFace = context.getClickedFace();
         ItemStack itemStack = context.getItemInHand();
         
-        if (!(level instanceof ServerLevel serverLevel)) {
-            return InteractionResult.FAIL;
+        // 计算粘贴位置：在点击面的相邻位置
+        BlockPos pastePos = clickedPos.relative(clickedFace);
+        
+        if(level instanceof ServerLevel serverLevel){
+            CompoundTag schemTag = SchemSerializer.readSchem("test.schem");
+            if (schemTag != null) {
+                SchemSerializer.deserialize(schemTag, serverLevel, pastePos);
+                player.sendSystemMessage(Component.literal("§a[粘贴模式] 已在位置粘贴: " + pastePos.getX() + ", " + pastePos.getY() + ", " + pastePos.getZ()));
+            } else {
+                player.sendSystemMessage(Component.literal("§c[粘贴模式] 无法读取schematic文件"));
+            }
         }
-        
-        String selectedSchem = tag.getString(SELECTED_SCHEM_KEY);
-        if (selectedSchem.isEmpty()) {
-            selectedSchem = "test.schem";
-            tag.putString(SELECTED_SCHEM_KEY, selectedSchem);
-        }
-        
-        // 加载schematic
-        SchematicManager.LoadResult loadResult = SchematicManager.loadSchematic(serverLevel, selectedSchem);
-        if (!loadResult.success()) {
-            player.sendSystemMessage(Component.literal("§c[粘贴模式] 无法加载schematic文件: " + loadResult.error()));
-            return InteractionResult.FAIL;
-        }
-        
-        // 粘贴到点击位置
-        SchematicReader.PasteOptions options = SchematicReader.PasteOptions.defaults();
-        SchematicManager.PasteResult result = SchematicManager.pasteSchematic(
-            serverLevel, loadResult.schematicTag(), clickedPos, options
-        );
-        
-        if (result.success()) {
-            player.sendSystemMessage(Component.literal("§a[粘贴模式] 成功粘贴schematic: " + selectedSchem));
-            player.sendSystemMessage(Component.literal("§7放置了 " + result.blocksPlaced() + " 个方块"));
-        } else {
-            player.sendSystemMessage(Component.literal("§c[粘贴模式] 粘贴失败: " + result.error()));
-        }
-        
-        // 保存数据组件
         itemStack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
         return InteractionResult.SUCCESS;
     }
