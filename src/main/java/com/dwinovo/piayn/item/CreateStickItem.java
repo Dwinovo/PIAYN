@@ -73,9 +73,7 @@ public class CreateStickItem extends Item {
 
     @Override
     public InteractionResult useOn(@Nonnull UseOnContext context) {
-        Level level = context.getLevel();
         Player player = context.getPlayer();
-        BlockPos clickedPos = context.getClickedPos();
         ItemStack itemStack = context.getItemInHand();
         
         if (player == null) {
@@ -150,15 +148,29 @@ public class CreateStickItem extends Item {
         // 计算粘贴位置：在点击面的相邻位置
         BlockPos pastePos = clickedPos.relative(clickedFace);
         
-        if(level instanceof ServerLevel serverLevel){
-            CompoundTag schemTag = SchemSerializer.readSchem("test.schem");
-            if (schemTag != null) {
-                SchemSerializer.deserialize(schemTag, serverLevel, pastePos);
-                player.sendSystemMessage(Component.literal("§a[粘贴模式] 已在位置粘贴: " + pastePos.getX() + ", " + pastePos.getY() + ", " + pastePos.getZ()));
-            } else {
-                player.sendSystemMessage(Component.literal("§c[粘贴模式] 无法读取schematic文件"));
+        if (player.isShiftKeyDown()) {
+            // Shift+右键执行实际粘贴
+            if(level instanceof ServerLevel serverLevel){
+                CompoundTag schemTag = SchemSerializer.readSchem("test.schem");
+                if (schemTag != null) {
+                    SchemSerializer.deserialize(schemTag, serverLevel, pastePos);
+                    player.sendSystemMessage(Component.literal("§a[粘贴模式] 已在位置粘贴: " + pastePos.getX() + ", " + pastePos.getY() + ", " + pastePos.getZ()));
+                } else {
+                    player.sendSystemMessage(Component.literal("§c[粘贴模式] 无法读取schematic文件"));
+                }
             }
+        } else {
+            // 普通右键设置预览位置
+            CompoundTag pastePosTag = new CompoundTag();
+            pastePosTag.putInt("x", pastePos.getX());
+            pastePosTag.putInt("y", pastePos.getY());
+            pastePosTag.putInt("z", pastePos.getZ());
+            tag.put("pastePos", pastePosTag);
+            tag.putBoolean("hasPastePos", true);
+            
+            player.sendSystemMessage(Component.literal("§b[粘贴模式] 预览位置已设置: " + pastePos.getX() + ", " + pastePos.getY() + ", " + pastePos.getZ() + " (Shift+右键执行粘贴)"));
         }
+        
         itemStack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
         return InteractionResult.SUCCESS;
     }
