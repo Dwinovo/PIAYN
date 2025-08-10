@@ -9,6 +9,7 @@ import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
 
@@ -22,7 +23,7 @@ public class BlockEntityUtil {
      * 创建方块实体NBT标签
      */
     @Nullable
-    public static CompoundTag createBlockEntityTag(@Nonnull ServerLevel serverLevel, 
+    public static CompoundTag createBlockEntityTag(@Nonnull Level level, 
                                                   @Nonnull BlockEntity blockEntity, 
                                                   int x, int y, int z) {
         try {
@@ -38,7 +39,7 @@ public class BlockEntityUtil {
             blockEntityTag.putIntArray("Pos", new int[]{x, y, z});
             
             // 保存方块实体数据
-            CompoundTag blockEntityData = blockEntity.saveWithoutMetadata(serverLevel.registryAccess());
+            CompoundTag blockEntityData = blockEntity.saveWithoutMetadata(level.registryAccess());
             
             // 移除位置信息，因为我们使用相对位置
             blockEntityData.remove("x");

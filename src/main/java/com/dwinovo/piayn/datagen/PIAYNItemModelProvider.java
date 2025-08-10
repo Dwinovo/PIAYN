@@ -23,8 +23,8 @@ public class PIAYNItemModelProvider extends ItemModelProvider {
         // 使用minecraft:item/template_spawn_egg作为父模型
         withExistingParent("pet_spawn_egg", mcLoc("item/template_spawn_egg"));
         
-        // 生成创造木棍的模型
-        // 使用标准的generated模型，引用自定义材质
-        singleTexture("create_stick", mcLoc("item/handheld"), "layer0", modLoc("item/create_stick"));
+
+        // 生成蓝图笔的模型
+        singleTexture("blueprint_pen", mcLoc("item/handheld"), "layer0", modLoc("item/blueprint_pen"));
     }
 }

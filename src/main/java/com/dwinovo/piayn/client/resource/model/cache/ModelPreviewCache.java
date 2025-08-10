@@ -1,4 +1,4 @@
-package com.dwinovo.piayn.client.resource.cache;
+package com.dwinovo.piayn.client.resource.model.cache;
 
 import com.dwinovo.piayn.PIAYN;
 import com.dwinovo.piayn.entity.PetEntity;

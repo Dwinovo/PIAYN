@@ -7,13 +7,13 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import net.minecraft.core.BlockPos;
-import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.Level;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class StructureData {
-    @Nonnull ServerLevel serverLevel;
+    @Nonnull Level level;
     @Nonnull BlockPos startPos;
     @Nonnull BlockPos endPos;
     @Nullable String schemName;

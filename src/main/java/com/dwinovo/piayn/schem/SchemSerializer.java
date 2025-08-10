@@ -6,6 +6,8 @@ import net.minecraft.nbt.IntArrayTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.NbtIo;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.Level;
+
 import com.dwinovo.piayn.schem.pojo.StructureData;
 import com.dwinovo.piayn.schem.util.EntityUtil;
 import com.dwinovo.piayn.schem.util.BlockUtil;
@@ -16,6 +18,7 @@ import java.nio.file.Files;
 import java.io.IOException;
 import org.slf4j.Logger;
 import com.mojang.logging.LogUtils;
+
 import net.minecraft.nbt.NbtAccounter;
 
 
@@ -56,9 +59,24 @@ public class SchemSerializer {
      * 把地图结构序列化成CompoundTag
      */
     public static CompoundTag serialize(StructureData structureInfo) {
-        final String schematicName = structureInfo.getSchemName();
+        if (structureInfo == null) {
+            LOGGER.error("serialize: structureInfo is null");
+            return null;
+        }
+        final Level level = structureInfo.getLevel();
+        final BlockPos start = structureInfo.getStartPos();
+        final BlockPos end = structureInfo.getEndPos();
+        if (level == null || start == null || end == null) {
+            LOGGER.error("serialize: missing required fields. level={}, startPos={}, endPos={}", level, start, end);
+            return null;
+        }
         final String authorName = structureInfo.getAuthorName();
-        final ServerLevel serverLevel = structureInfo.getServerLevel();
+        String schematicName = structureInfo.getSchemName();
+        if (schematicName == null || schematicName.isBlank()) {
+            schematicName = "schem_" + System.currentTimeMillis() + ".schem";
+        } else if (!schematicName.endsWith(".schem")) {
+            schematicName = schematicName + ".schem";
+        }
         final int width = structureInfo.getWidth();
         final int height = structureInfo.getHeight();
         final int length = structureInfo.getLength();
@@ -89,17 +107,20 @@ public class SchemSerializer {
         }
         
         // 构建方块容器 - 暂时使用 SchemNbt 常量
-        CompoundTag blocksContainer = BlockContainerUtil.buildBlockContainer(serverLevel, originPos, width, height, length);
+        CompoundTag blocksContainer = BlockContainerUtil.buildBlockContainer(level, originPos, width, height, length);
         schematicTag.put(BLOCKS_KEY, blocksContainer);
         
         // 构建实体列表
-        ListTag entitiesList = EntityUtil.buildEntitiesList(serverLevel, originPos, width, height, length);
+        ListTag entitiesList = EntityUtil.buildEntitiesList(level, originPos, width, height, length);
         if (!entitiesList.isEmpty()) {
             schematicTag.put(ENTITIES_KEY, entitiesList);
         }
         // 按照Sponge规范构建正确的NBT结构
         CompoundTag rootContent = new CompoundTag();
         rootContent.put(SCHEMATIC_KEY, schematicTag);
+
+        // 写入文件
+        SchemSerializer.writeSchem(rootContent, schematicName);
         
         return rootContent;
     }

@@ -1,4 +1,4 @@
-package com.dwinovo.piayn.client.resource;
+package com.dwinovo.piayn.client.resource.model;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -10,7 +10,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.slf4j.Logger;
 
-import com.dwinovo.piayn.client.resource.pojo.ClientModelData;
+import com.dwinovo.piayn.client.resource.model.pojo.ClientModelData;
 import com.dwinovo.piayn.server.resource.pojo.ServerModelData;
 import com.google.gson.JsonObject;
 import com.mojang.blaze3d.platform.NativeImage;

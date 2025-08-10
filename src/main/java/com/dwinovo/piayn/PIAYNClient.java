@@ -2,8 +2,8 @@ package com.dwinovo.piayn;
 
 import com.dwinovo.piayn.client.gui.screen.container.PetContainerScreen;
 import com.dwinovo.piayn.client.model.PetEntityModel;
-import com.dwinovo.piayn.client.renderer.PetEnityRenderer;
-import com.dwinovo.piayn.client.resource.cache.ModelPreviewCache;
+import com.dwinovo.piayn.client.renderer.entity.PetEnityRenderer;
+import com.dwinovo.piayn.client.resource.model.cache.ModelPreviewCache;
 import com.dwinovo.piayn.init.InitEntity;
 import com.dwinovo.piayn.init.InitMenuTypes;
 import net.neoforged.api.distmarker.Dist;

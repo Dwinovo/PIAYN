@@ -1,4 +1,4 @@
-package com.dwinovo.piayn.client.renderer;
+package com.dwinovo.piayn.client.renderer.entity;
 
 import com.dwinovo.piayn.client.renderer.layer.PetItemGeoLayer;
 import com.dwinovo.piayn.entity.PetEntity;

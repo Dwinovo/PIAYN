@@ -8,6 +8,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import com.dwinovo.piayn.schem.SchemSerializer;
@@ -22,7 +23,7 @@ public class BlockContainerUtil {
      * 构建方块容器
      */
     @Nonnull
-    public static CompoundTag buildBlockContainer(@Nonnull ServerLevel serverLevel, 
+    public static CompoundTag buildBlockContainer(@Nonnull Level level, 
                                                  @Nonnull BlockPos originPos, 
                                                  int width, int height, int length) {
         
@@ -36,16 +37,16 @@ public class BlockContainerUtil {
             for (int z = 0; z < length; z++) {
                 for (int x = 0; x < width; x++) {
                     BlockPos currentPos = originPos.offset(x, y, z);
-                    BlockState blockState = serverLevel.getBlockState(currentPos);
+                    BlockState blockState = level.getBlockState(currentPos);
                     
                     // 获取或创建调色板索引
                     int paletteIndex = paletteMap.getId(blockState);
                     blockData.add(paletteIndex);
                     
                     // 处理方块实体
-                    BlockEntity blockEntity = serverLevel.getBlockEntity(currentPos);
+                    BlockEntity blockEntity = level.getBlockEntity(currentPos);
                     if (blockEntity != null) {
-                        CompoundTag blockEntityTag = BlockEntityUtil.createBlockEntityTag(serverLevel, blockEntity, x, y, z);
+                        CompoundTag blockEntityTag = BlockEntityUtil.createBlockEntityTag(level, blockEntity, x, y, z);
                         if (blockEntityTag != null) {
                             blockEntitiesList.add(blockEntityTag);
                         }

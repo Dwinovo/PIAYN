@@ -1,4 +1,4 @@
-package com.dwinovo.piayn.client.resource.pojo;
+package com.dwinovo.piayn.client.resource.model.pojo;
 
 import software.bernie.geckolib.cache.object.BakedGeoModel;
 import software.bernie.geckolib.loading.object.BakedAnimations;

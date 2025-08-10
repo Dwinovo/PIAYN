@@ -18,7 +18,7 @@ import com.dwinovo.piayn.entity.PetEntity;
 public class ModelSelectButton extends Button {
     // 按钮材质路径
     private static final ResourceLocation BUTTON_TEXTURE = 
-        ResourceLocation.fromNamespaceAndPath(PIAYN.MOD_ID, "textures/gui/component/container_button.png");
+        ResourceLocation.fromNamespaceAndPath(PIAYN.MOD_ID, "textures/gui/component/buttons_icon.png");
     
     // 按钮尺寸
     private static final int BUTTON_WIDTH = 16;

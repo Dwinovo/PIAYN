@@ -1,6 +1,6 @@
 package com.dwinovo.piayn.client.gui.jade;
 
-import com.dwinovo.piayn.client.resource.ClientModelDataManager;
+import com.dwinovo.piayn.client.resource.model.ClientModelDataManager;
 import com.dwinovo.piayn.entity.PetEntity;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;

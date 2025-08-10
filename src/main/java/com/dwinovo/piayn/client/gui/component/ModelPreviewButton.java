@@ -10,8 +10,8 @@ import net.minecraft.resources.ResourceLocation;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.jetbrains.annotations.NotNull;
 import com.dwinovo.piayn.PIAYN;
-import com.dwinovo.piayn.client.resource.ClientModelDataManager;
-import com.dwinovo.piayn.client.resource.cache.ModelPreviewCache;
+import com.dwinovo.piayn.client.resource.model.ClientModelDataManager;
+import com.dwinovo.piayn.client.resource.model.cache.ModelPreviewCache;
 import com.dwinovo.piayn.entity.PetEntity;
 import com.dwinovo.piayn.packet.ModelSwitchPacket;
 
@@ -25,7 +25,7 @@ public class ModelPreviewButton extends Button {
 
     // 按钮材质资源路径
     private static final ResourceLocation BUTTON_TEXTURE = 
-        ResourceLocation.fromNamespaceAndPath(PIAYN.MOD_ID, "textures/gui/component/container_button.png");
+        ResourceLocation.fromNamespaceAndPath(PIAYN.MOD_ID, "textures/gui/component/buttons_icon.png");
     
     // 按钮宽度（像素）
     private static final int BUTTON_WIDTH = 32;

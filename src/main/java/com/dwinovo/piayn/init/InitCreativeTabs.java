@@ -21,7 +21,7 @@ public class InitCreativeTabs {
             .displayItems((parameters, output) -> {
                 // 添加模组的所有物品到创造模式标签页
                 output.accept(InitItem.PET_SPAWN_EGG.get());
-                output.accept(InitItem.CREATE_STICK.get());
+                output.accept(InitItem.BLUEPRINT_PEN.get());
                 // 在这里可以继续添加其他物品
                 // output.accept(其他物品);
             })

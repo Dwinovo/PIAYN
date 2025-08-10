@@ -1,7 +1,8 @@
 package com.dwinovo.piayn.packet;
 
+import com.dwinovo.piayn.client.resource.model.ClientModelDataManager;
 import com.dwinovo.piayn.server.resource.pojo.ServerModelData;
-import com.dwinovo.piayn.client.resource.ClientModelDataManager;
+
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;

@@ -60,6 +60,8 @@ repositories {    // 阿里云镜像 - 优先使用，速度最快
     maven {
         url = uri("https://api.modrinth.com/maven") 
     }
+    maven { url = uri("https://raw.githubusercontent.com/Fuzss/modresources/main/maven/") }
+    maven { url = uri("https://maven.createmod.net") }
 }
 
 base {
@@ -129,9 +131,8 @@ configurations {
 
 dependencies {
     // 使用jar-in-jar方式打包Geckolib
-    compileOnly("software.bernie.geckolib:geckolib-neoforge-${project.property("minecraft_version")}:${project.property("geckolib_version")}")
-    runtimeOnly("software.bernie.geckolib:geckolib-neoforge-${project.property("minecraft_version")}:${project.property("geckolib_version")}")
-    jarJar("software.bernie.geckolib:geckolib-neoforge-${project.property("minecraft_version")}:${project.property("geckolib_version")}")
+    implementation("software.bernie.geckolib:geckolib-neoforge-${project.property("minecraft_version")}:${project.property("geckolib_version")}")?.let { jarJar(it) }
+
 
     compileOnly("mezz.jei:jei-${project.property("minecraft_version")}-neoforge-api:${project.property("jei_version")}")
     runtimeOnly("mezz.jei:jei-${project.property("minecraft_version")}-neoforge:${project.property("jei_version")}")
@@ -152,6 +153,7 @@ dependencies {
     "additionalRuntimeClasspath"("cn.hutool:hutool-core:${project.property("hutool_version")}")
     jarJar("cn.hutool:hutool-core:${project.property("hutool_version")}")
 
+    implementation("net.createmod.ponder:Ponder-NeoForge-${project.property("minecraft_version")}:${project.property("ponder_version")}")?.let { jarJar(it) }
     
 }
 

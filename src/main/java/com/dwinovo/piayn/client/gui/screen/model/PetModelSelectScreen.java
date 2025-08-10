@@ -9,9 +9,9 @@ import org.jetbrains.annotations.NotNull;
 import com.mojang.blaze3d.platform.InputConstants;
 import com.dwinovo.piayn.PIAYN;
 import com.dwinovo.piayn.client.gui.component.ModelPreviewButton;
-import com.dwinovo.piayn.client.resource.ClientModelDataManager;
 import com.dwinovo.piayn.client.gui.screen.IPetScreenButtons;
 import com.dwinovo.piayn.client.gui.screen.container.PetContainerScreen;
+import com.dwinovo.piayn.client.resource.model.ClientModelDataManager;
 import com.dwinovo.piayn.entity.PetEntity;
 import java.util.Set;
 

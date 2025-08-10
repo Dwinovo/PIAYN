@@ -12,6 +12,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import com.dwinovo.piayn.schem.SchemSerializer;
 
@@ -25,7 +26,7 @@ public class EntityUtil {
      * 构建指定区域内的实体列表
      */
     @Nonnull
-    public static ListTag buildEntitiesList(@Nonnull ServerLevel serverLevel, 
+    public static ListTag buildEntitiesList(@Nonnull Level level, 
                                            @Nonnull BlockPos originPos, 
                                            int width, int height, int length) {
         
@@ -38,7 +39,7 @@ public class EntityUtil {
         );
         
         // 获取区域内的所有实体
-        for (Entity entity : serverLevel.getEntitiesOfClass(Entity.class, searchArea)) {
+        for (Entity entity : level.getEntitiesOfClass(Entity.class, searchArea)) {
             CompoundTag entityTag = createEntityTag(entity, originPos);
             if (entityTag != null) {
                 entitiesList.add(entityTag);
