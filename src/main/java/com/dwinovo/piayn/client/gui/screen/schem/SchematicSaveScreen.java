@@ -17,8 +17,6 @@ public class SchematicSaveScreen extends Screen {
     private EditBox nameBox;
     private SchemSaveButton saveButton;
 
-    // 固定保存路径（暂不使用，仅占位）
-    private static final Path DATA_PATH = Paths.get(System.getProperty("user.dir"), "config", "piayn", "schematics");
 
     // 背景贴图：整张纹理为 256x256，但实际可见材质区域为 206x47
     private static final ResourceLocation BG_TEX = ResourceLocation.fromNamespaceAndPath(PIAYN.MOD_ID, "textures/gui/schem/schem_save.png");
@@ -52,14 +50,14 @@ public class SchematicSaveScreen extends Screen {
 
         // 文本框（使用自定义材质子类）
         // 放置在背景相对坐标 (9,16)，大小 141x18
-        this.nameBox = new EditBox(this.font, left + 12, top + 17, 140, 18, Component.literal(""));
+        this.nameBox = new EditBox(this.font, left + 16, top + 26, 140, 18, Component.literal(""));
         this.nameBox.setBordered(false);
         this.nameBox.setMaxLength(128);
         this.nameBox.setValue("");
         this.addRenderableWidget(this.nameBox);
 
         
-        this.saveButton = new SchemSaveButton(this.left + 165, this.top + 15, this, this::buildStructureData);
+        this.saveButton = new SchemSaveButton(this.left + 169, this.top + 23, this, this::buildStructureData);
         this.addRenderableWidget(this.saveButton);
     }
 

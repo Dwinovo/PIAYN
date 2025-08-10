@@ -56,7 +56,7 @@ public class SchemSerializer {
 
 
     /**
-     * 把地图结构序列化成CompoundTag
+     * 把地图结构序列化保存并且返回CompoundTag
      */
     public static CompoundTag serialize(StructureData structureInfo) {
         if (structureInfo == null) {
@@ -150,7 +150,7 @@ public class SchemSerializer {
      * 把一个CompoundTag保存成.schem文件
      * 使用GZip压缩的NBT格式，符合Sponge Schematic V3规范
      */
-    public static void writeSchem(CompoundTag schemCompoundTag, String filename) {
+    private static void writeSchem(CompoundTag schemCompoundTag, String filename) {
         try {
             // 确保默认目录存在
             if (!Files.exists(DEFAULT_DIR)) {
@@ -161,8 +161,8 @@ public class SchemSerializer {
             
             // 使用GZip压缩写入NBT文件
             NbtIo.writeCompressed(schemCompoundTag, filePath);
-            LOGGER.info("Successfully saved schematic to: {}", filePath);
             
+
         } catch (IOException e) {
             LOGGER.error("Failed to write schematic file: {}", filename, e);
         } catch (Exception e) {
