@@ -2,28 +2,49 @@ package com.dwinovo.piayn.client.gui.component;
 
 import org.jetbrains.annotations.NotNull;
 import com.dwinovo.piayn.PIAYN;
-import com.dwinovo.piayn.schem.SchemSerializer;
-import com.dwinovo.piayn.schem.pojo.StructureData;
+import com.dwinovo.piayn.schematic.nbt.NbtStructureIO;
+import com.mojang.logging.LogUtils;
 
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.level.Level;
+import java.io.IOException;
 import java.util.function.Supplier;
+import org.slf4j.Logger;
 
 public class SchemSaveButton extends Button{
     private static final ResourceLocation BUTTON_TEXTURE = 
         ResourceLocation.fromNamespaceAndPath(PIAYN.MOD_ID, "textures/gui/component/buttons_icon.png");
+    private static final Logger LOGGER = LogUtils.getLogger();
 
-    public SchemSaveButton(int x, int y, Screen currentScreen, Supplier<StructureData> dataSupplier) {
-        super(x, y, BUTTON_WIDTH, BUTTON_HEIGHT, Component.empty(), 
+    public SchemSaveButton(int x, int y, Screen currentScreen, Supplier<SaveArgs> dataSupplier) {
+        super(x, y, BUTTON_WIDTH, BUTTON_HEIGHT, Component.empty(),
                 button -> {
-                    StructureData data = dataSupplier != null ? dataSupplier.get() : null;
-                    if (data != null) {
-                        SchemSerializer.serialize(data);
+                    try {
+                        SaveArgs args = dataSupplier.get();
+                        if (args == null) {
+                            LOGGER.warn("SaveArgs supplier returned null");
+                            return;
+                        }
+                        // 执行导出为压缩 NBT
+                        NbtStructureIO.exportRegionToNbt(
+                                args.level,
+                                args.first,
+                                args.second,
+                                args.fileName,
+                                args.overwrite,
+                                args.includeEntities
+                        );
+                        currentScreen.onClose();
+                    } catch (IOException e) {
+                        LOGGER.error("Failed to save schematic nbt", e);
+                    } catch (Exception e) {
+                        LOGGER.error("Unexpected error while saving schematic nbt", e);
                     }
-                    currentScreen.onClose();
                 }, DEFAULT_NARRATION);
         this.currentScreen = currentScreen;
     }
@@ -34,6 +55,14 @@ public class SchemSaveButton extends Button{
     
     // 当前界面引用
     private final Screen currentScreen;
+
+    // 保存参数容器（使用 record 更简洁且不可变）
+    public static record SaveArgs(Level level,
+                                  BlockPos first,
+                                  BlockPos second,
+                                  String fileName,
+                                  boolean overwrite,
+                                  boolean includeEntities) {}
 
 
     @Override

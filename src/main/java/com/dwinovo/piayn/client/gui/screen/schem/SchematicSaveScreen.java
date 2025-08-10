@@ -1,8 +1,5 @@
 package com.dwinovo.piayn.client.gui.screen.schem;
 
-import java.nio.file.Path;
-import java.nio.file.Paths;
-
 import com.dwinovo.piayn.PIAYN;
 import com.dwinovo.piayn.client.gui.component.SchemSaveButton;
 import net.minecraft.client.gui.GuiGraphics;
@@ -57,7 +54,16 @@ public class SchematicSaveScreen extends Screen {
         this.addRenderableWidget(this.nameBox);
 
         
-        this.saveButton = new SchemSaveButton(this.left + 169, this.top + 23, this, this::buildStructureData);
+        this.saveButton = new SchemSaveButton(this.left + 169, this.top + 23, this,
+                () -> new SchemSaveButton.SaveArgs(
+                        this.level,
+                        this.pos1,
+                        this.pos2,
+                        this.nameBox.getValue().trim(),
+                        false,           // 不覆盖：自动生成唯一文件名
+                        true             // 包含实体
+                )
+        );
         this.addRenderableWidget(this.saveButton);
     }
 
@@ -89,15 +95,5 @@ public class SchematicSaveScreen extends Screen {
         guiGraphics.blit(BG_TEX, left, top, 0, 0, BG_WIDTH, BG_HEIGHT, BG_TEX_W, BG_TEX_H);
     }
 
-    // 动态构造 StructureData，确保使用用户在输入框中填写的最新文件名
-    private com.dwinovo.piayn.schem.pojo.StructureData buildStructureData() {
-        String name = this.nameBox != null ? this.nameBox.getValue() : null;
-        return new com.dwinovo.piayn.schem.pojo.StructureData(
-            this.level,
-            this.pos1,
-            this.pos2,
-            name,
-            this.authorName
-        );
-    }
+    
 }
