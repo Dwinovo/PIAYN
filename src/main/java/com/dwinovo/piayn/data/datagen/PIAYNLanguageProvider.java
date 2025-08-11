@@ -1,4 +1,4 @@
-package com.dwinovo.piayn.datagen;
+package com.dwinovo.piayn.data.datagen;
 
 import com.dwinovo.piayn.PIAYN;
 import com.dwinovo.piayn.init.InitEntity;
@@ -37,7 +37,7 @@ public class PIAYNLanguageProvider extends LanguageProvider {
         
         // === 物品翻译 ===
         this.addItem(InitItem.PET_SPAWN_EGG, "Pet Spawn Egg");
-        this.addItem(InitItem.BLUEPRINT_PEN, "Blueprint Pen");
+        this.addItem(InitItem.SCHEMATIC_PEN, "Blueprint Pen");
         
 
         

@@ -1,11 +1,11 @@
-package com.dwinovo.piayn.event;
+package com.dwinovo.piayn.event.schematic;
 
 import org.slf4j.Logger;
 
 import com.dwinovo.piayn.PIAYN;
+import com.dwinovo.piayn.client.gui.screen.schematic.SchematicSaveScreen;
 import com.dwinovo.piayn.client.resource.schem.SchemTexture;
-import com.dwinovo.piayn.client.gui.screen.schem.SchematicSaveScreen;
-import com.dwinovo.piayn.item.BlueprintPenItem;
+import com.dwinovo.piayn.item.SchematicPenItem;
 import com.dwinovo.piayn.utils.RaycastHelper;
 
 import com.mojang.logging.LogUtils;
@@ -31,13 +31,12 @@ import net.minecraft.world.phys.Vec3;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.bus.api.EventPriority;
 import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
 import net.neoforged.neoforge.client.event.InputEvent;
 import org.lwjgl.glfw.GLFW;
 
 @EventBusSubscriber(modid = PIAYN.MOD_ID,value = Dist.CLIENT)
-public class BlueprintPenClientEvent {
+public class SchematicPenClientEvent {
     public static final Logger LOGGER = LogUtils.getLogger();
     // 客户端侧选择状态（与 Create 的 Handler 思路一致）
     private static BlockPos firstPos;
@@ -51,17 +50,17 @@ public class BlueprintPenClientEvent {
     // 当前“指向或投射”的方块位置（非必然写入到物品的 first/second，仅用于渲染辅助）
     // 注：selectedPos/selectedFace/range 已在上方声明为客户端本地状态
 
-    BindableTexture bindableTexture = () -> ResourceLocation.fromNamespaceAndPath(PIAYN.MOD_ID, "textures/schem/border.png");
+    private static final BindableTexture FACE_TEXTURE = () -> ResourceLocation.fromNamespaceAndPath(PIAYN.MOD_ID, "textures/schematic/border.png");
+    private static final BindableTexture HIGHLIGHT_FACE_TEXTURE = () -> ResourceLocation.fromNamespaceAndPath(PIAYN.MOD_ID, "textures/schematic/hightlignt_border.png");
 
-
-    @SubscribeEvent(priority = EventPriority.NORMAL)
+    @SubscribeEvent
     public static void onRenderLevelStage(RenderLevelStageEvent event) {
         if (event.getStage() != RenderLevelStageEvent.Stage.AFTER_PARTICLES) return;
 
         Minecraft mc = Minecraft.getInstance();
         Player player = mc.player;
         if (player == null || mc.level == null) return;
-        if (!(player.getMainHandItem().getItem() instanceof BlueprintPenItem)) return;
+        if (!(player.getMainHandItem().getItem() instanceof SchematicPenItem)) return;
 
         // 计算当前目标格：
         // - Ctrl 按下：使用“视线 * range”的落点作为临时选中格，便于不指向方块时预览尺寸
@@ -110,13 +109,12 @@ public class BlueprintPenClientEvent {
             selectedFace = (result == null || result.missed()) ? null : (inside ? result.getFacing().getOpposite() : result.getFacing());
         }
 
-        AABB current = getCurrentSelectionBox(lookingAt, first, second);
+        AABB current = getSelectionBox(lookingAt, first, second);
         if (current != null) {
             Outliner.getInstance().chaseAABB(OUTLINE_SLOT, current)
                 .colored(0x6886c5)
                 .lineWidth(1 / 16f)
-                .withFaceTextures(new SchemTexture(ResourceLocation.fromNamespaceAndPath(PIAYN.MOD_ID, "textures/schem/border.png")),
-                        new SchemTexture(ResourceLocation.fromNamespaceAndPath(PIAYN.MOD_ID, "textures/schem/border.png")))
+                .withFaceTextures(FACE_TEXTURE,HIGHLIGHT_FACE_TEXTURE)
                 .highlightFace(selectedFace);
         }
     }
@@ -126,7 +124,7 @@ public class BlueprintPenClientEvent {
         Minecraft mc = Minecraft.getInstance();
         Player player = mc.player;
         if (player == null || mc.level == null) return;
-        if (!(player.getMainHandItem().getItem() instanceof BlueprintPenItem)) return;
+        if (!(player.getMainHandItem().getItem() instanceof SchematicPenItem)) return;
         if (!isCtrlDown(mc)) return;
 
         double delta = event.getScrollDeltaY();
@@ -173,10 +171,11 @@ public class BlueprintPenClientEvent {
         if (event.getButton() != GLFW.GLFW_MOUSE_BUTTON_RIGHT || event.getAction() != GLFW.GLFW_PRESS)
             return;
         Minecraft mc = Minecraft.getInstance();
-        if (mc == null || mc.player == null || mc.level == null || mc.screen != null)
-            return;
         Player player = mc.player;
-        if (!(player.getMainHandItem().getItem() instanceof BlueprintPenItem))
+        if (mc == null || player == null || mc.level == null || mc.screen != null)
+            return;
+        
+        if (!(player.getMainHandItem().getItem() instanceof SchematicPenItem))
             return;
 
         // Shift 清空
@@ -192,8 +191,7 @@ public class BlueprintPenClientEvent {
         if (secondPos != null) {
             Minecraft mc2 = Minecraft.getInstance();
             if (mc2.level != null && firstPos != null) {
-                String author = mc2.player != null ? mc2.player.getName().getString() : "Unknown";
-                mc2.setScreen(new SchematicSaveScreen(mc2.level, firstPos, secondPos, author));
+                mc2.setScreen(new SchematicSaveScreen(mc2.level, firstPos, secondPos));
             }
             event.setCanceled(true);
             return;
@@ -225,15 +223,7 @@ public class BlueprintPenClientEvent {
             || InputConstants.isKeyDown(handle, GLFW.GLFW_KEY_RIGHT_CONTROL);
     }
 
-    /**
-     * 计算“当前应渲染的选择盒”。
-     * 规则与 Create 对齐：
-     * - 当 second 为空：
-     *   - first 为空：仅高亮 lookingAt（若存在）。
-     *   - first 非空：若 lookingAt 存在，以 first 与 lookingAt 构盒；否则仅高亮 first。
-     * - 当 second 非空：直接以 first、second 构盒。
-     */
-    private static AABB getCurrentSelectionBox(BlockPos lookingAt, BlockPos first, BlockPos second) {
+    private static AABB getSelectionBox(BlockPos lookingAt, BlockPos first, BlockPos second) {
         if (second == null) {
             if (first == null)
                 return lookingAt == null ? null : new AABB(lookingAt.getX(), lookingAt.getY(), lookingAt.getZ(), lookingAt.getX() + 1, lookingAt.getY() + 1, lookingAt.getZ() + 1);
@@ -245,9 +235,6 @@ public class BlueprintPenClientEvent {
             Math.max(first.getX(), second.getX()) + 1, Math.max(first.getY(), second.getY()) + 1, Math.max(first.getZ(), second.getZ()) + 1);
     }
 
-    // 无需单独的射线求面方法：已对齐 Create 使用 RaycastHelper.rayTraceUntil 获取朝向
-
-    // 使用原始 BlockPos 角点构造盒，不做 +1 扩展（与 Create 的 AABB(first, second) 语义对齐）
     private static AABB makeBox(BlockPos a, BlockPos b) {
         int minX = Math.min(a.getX(), b.getX());
         int minY = Math.min(a.getY(), b.getY());

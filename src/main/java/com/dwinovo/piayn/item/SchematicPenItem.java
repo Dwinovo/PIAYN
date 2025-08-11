@@ -15,10 +15,10 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 
-public class BlueprintPenItem extends Item{
+public class SchematicPenItem extends Item{
     public static final Logger LOGGER = LogUtils.getLogger();
 
-    public BlueprintPenItem(Properties properties) {
+    public SchematicPenItem(Properties properties) {
         super(properties);
     }
 

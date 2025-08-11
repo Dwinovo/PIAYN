@@ -1,13 +1,13 @@
 package com.dwinovo.piayn.init;
 
-import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.item.Item;
 import net.neoforged.neoforge.common.DeferredSpawnEggItem;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import java.util.function.Supplier;
 import com.dwinovo.piayn.PIAYN;
-import com.dwinovo.piayn.item.BlueprintPenItem;
+import com.dwinovo.piayn.item.SchematicPaperItem;
+import com.dwinovo.piayn.item.SchematicPenItem;
 
 
 public class InitItem {
@@ -22,7 +22,12 @@ public class InitItem {
         ));
     
     
-    public static final Supplier<Item> BLUEPRINT_PEN = ITEM.register("blueprint_pen", 
-        () -> new BlueprintPenItem(new Item.Properties()
+    public static final Supplier<Item> SCHEMATIC_PEN = ITEM.register("schematic_pen", 
+        () -> new SchematicPenItem(new Item.Properties()
                     .stacksTo(1)));
+    
+    public static final Supplier<Item> SCHEMATIC_PAPER = ITEM.register("schematic_paper", 
+        () -> new SchematicPaperItem(new Item.Properties()
+                    .stacksTo(1)
+                    .component(InitComponent.SCHEMATIC_NAME.get(), "")));
 }

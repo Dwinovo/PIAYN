@@ -1,7 +1,9 @@
-package com.dwinovo.piayn.client.gui.screen.schem;
+package com.dwinovo.piayn.client.gui.screen.schematic;
 
 import com.dwinovo.piayn.PIAYN;
-import com.dwinovo.piayn.client.gui.component.SchemSaveButton;
+import com.dwinovo.piayn.client.gui.component.SchematicSaveButton;
+import com.dwinovo.piayn.schematic.nbt.NbtStructureIO;
+import com.mojang.logging.LogUtils;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
@@ -9,10 +11,12 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.Level;
+import org.slf4j.Logger;
 
 public class SchematicSaveScreen extends Screen {
+    private static final Logger LOGGER = LogUtils.getLogger();
     private EditBox nameBox;
-    private SchemSaveButton saveButton;
+    private SchematicSaveButton saveButton;
 
 
     // 背景贴图：整张纹理为 256x256，但实际可见材质区域为 206x47
@@ -30,14 +34,13 @@ public class SchematicSaveScreen extends Screen {
     private final Level level;
     private final BlockPos pos1;
     private final BlockPos pos2;
-    private final String authorName;
 
-    public SchematicSaveScreen(Level level, BlockPos pos1, BlockPos pos2, String authorName) {
+
+    public SchematicSaveScreen(Level level, BlockPos pos1, BlockPos pos2) {
         super(Component.empty());
         this.level = level;
         this.pos1 = pos1;
         this.pos2 = pos2;
-        this.authorName = authorName;
     }
 
     @Override
@@ -54,27 +57,23 @@ public class SchematicSaveScreen extends Screen {
         this.addRenderableWidget(this.nameBox);
 
         
-        this.saveButton = new SchemSaveButton(this.left + 169, this.top + 23, this,
-                () -> new SchemSaveButton.SaveArgs(
-                        this.level,
-                        this.pos1,
-                        this.pos2,
-                        this.nameBox.getValue().trim(),
-                        false,           // 不覆盖：自动生成唯一文件名
-                        true             // 包含实体
-                )
+        this.saveButton = new SchematicSaveButton(this.left + 169, this.top + 23,
+                btn -> {
+                    try {
+                        String schemticName = this.nameBox.getValue().trim();
+                        NbtStructureIO.exportRegionToNbt(this.level, this.pos1, this.pos2, schemticName);
+                        this.onClose();
+                    } catch (Exception e) {
+                        LOGGER.error("error while saving schematic nbt", e);
+                    }
+                }
         );
         this.addRenderableWidget(this.saveButton);
+
+        this.saveButton.active = false;
+        this.nameBox.setResponder(text -> this.saveButton.active = !text.trim().isEmpty());
     }
 
-    @Override
-    public void tick() {
-        super.tick();
-        // 简单可用性：当文件名非空时启用按钮
-        if (this.saveButton != null && this.nameBox != null) {
-            this.saveButton.active = !this.nameBox.getValue().trim().isEmpty();
-        }
-    }
 
     @Override
     public boolean isPauseScreen() {
@@ -85,7 +84,6 @@ public class SchematicSaveScreen extends Screen {
     public void render(net.minecraft.client.gui.GuiGraphics gfx, int mouseX, int mouseY, float partialTick) {
         // 先绘制背景
         super.render(gfx, mouseX, mouseY, partialTick);
-        
         gfx.drawCenteredString(this.font, Component.empty(), this.width / 2, top - 12, 0xFFFFFF);
 
     }

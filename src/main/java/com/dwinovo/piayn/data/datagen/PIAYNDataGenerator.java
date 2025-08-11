@@ -1,4 +1,4 @@
-package com.dwinovo.piayn.datagen;
+package com.dwinovo.piayn.data.datagen;
 
 import com.dwinovo.piayn.PIAYN;
 import net.neoforged.bus.api.SubscribeEvent;

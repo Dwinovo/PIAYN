@@ -1,4 +1,4 @@
-package com.dwinovo.piayn.datagen;
+package com.dwinovo.piayn.data.datagen;
 
 import com.dwinovo.piayn.PIAYN;
 import net.minecraft.data.PackOutput;
@@ -25,6 +25,9 @@ public class PIAYNItemModelProvider extends ItemModelProvider {
         
 
         // 生成蓝图笔的模型
-        singleTexture("blueprint_pen", mcLoc("item/handheld"), "layer0", modLoc("item/blueprint_pen"));
+        singleTexture("schematic_pen", mcLoc("item/handheld"), "layer0", modLoc("item/schematic_pen"));
+        
+        // 生成蓝图的模型
+        singleTexture("schematic_paper", mcLoc("item/generated"), "layer0", modLoc("item/schematic_paper"));
     }
 }

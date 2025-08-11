@@ -1,6 +1,6 @@
 {
   "parent": "minecraft:item/handheld",
   "textures": {
-    "layer0": "piayn:item/blueprint_pen"
+    "layer0": "piayn:item/schematic_pen"
   }
 }
