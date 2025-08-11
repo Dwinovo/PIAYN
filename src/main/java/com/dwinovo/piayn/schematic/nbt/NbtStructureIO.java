@@ -47,15 +47,13 @@ public class NbtStructureIO {
 
         //如果文件夹不存在，创建
         FileUtil.mkdir(SCHEMATIC_DIR);
-        // 如果文件已经存在，返回
+        if (!schematicName.endsWith(".nbt")) {
+            schematicName += ".nbt";
+        }
         File target = FileUtil.file(SCHEMATIC_DIR, schematicName);
         if (FileUtil.exist(target)) {
             LOGGER.warn("Schematic already exists: {}", target);
             return;
-        }
-        // 如果文件名没有后缀，自动添加
-        if (!schematicName.endsWith(".nbt")) {
-            schematicName += ".nbt";
         }
         
         // 计算包围盒、原点与尺寸（含端点）

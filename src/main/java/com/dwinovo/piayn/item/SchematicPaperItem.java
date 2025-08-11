@@ -29,16 +29,5 @@ public class SchematicPaperItem extends Item {
         return InteractionResultHolder.sidedSuccess(stack, level.isClientSide);
     }
 
-    // 数据组件存取便捷方法：保存/读取一个字符串
-    public static void setSchematicName(ItemStack stack, String name) {
-        if (stack == null) return;
-        stack.set(InitComponent.SCHEMATIC_NAME.get(), name);
-    }
-
-    public static String getSchematicName(ItemStack stack) {
-        if (stack == null) return "";
-        String val = stack.get(InitComponent.SCHEMATIC_NAME.get());
-        return val != null ? val : "";
-    }
 
 }
