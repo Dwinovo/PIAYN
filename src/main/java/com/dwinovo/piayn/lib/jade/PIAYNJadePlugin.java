@@ -1,4 +1,4 @@
-package com.dwinovo.piayn.client.gui.jade;
+package com.dwinovo.piayn.lib.jade;
 
 import com.dwinovo.piayn.PIAYN;
 import com.dwinovo.piayn.entity.PetEntity;

@@ -4,10 +4,14 @@ import org.slf4j.Logger;
 
 import com.dwinovo.piayn.PIAYN;
 import com.dwinovo.piayn.client.gui.screen.schematic.SchematicSaveScreen;
-import com.dwinovo.piayn.client.resource.schem.SchemTexture;
-import com.dwinovo.piayn.item.SchematicPenItem;
-import com.dwinovo.piayn.utils.RaycastHelper;
 
+import com.dwinovo.piayn.item.SchematicPenItem;
+import com.dwinovo.piayn.lib.catnip.animation.AnimationTickHolder;
+import com.dwinovo.piayn.lib.catnip.outliner.Outliner;
+import com.dwinovo.piayn.lib.catnip.render.BindableTexture;
+import com.dwinovo.piayn.lib.catnip.render.DefaultSuperRenderTypeBuffer;
+import com.dwinovo.piayn.lib.catnip.render.SuperRenderTypeBuffer;
+import com.dwinovo.piayn.utils.RaycastHelper;
 import com.mojang.logging.LogUtils;
 import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.util.Mth;
@@ -16,10 +20,6 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.item.context.UseOnContext;
-
-import net.createmod.catnip.outliner.Outliner;
-import net.createmod.catnip.render.BindableTexture;
-import net.createmod.catnip.animation.AnimationTickHolder;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.player.Player;
@@ -32,7 +32,10 @@ import net.neoforged.api.distmarker.Dist;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
+import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.client.event.InputEvent;
+import com.mojang.blaze3d.vertex.PoseStack;
+
 import org.lwjgl.glfw.GLFW;
 
 @EventBusSubscriber(modid = PIAYN.MOD_ID,value = Dist.CLIENT)
@@ -117,7 +120,30 @@ public class SchematicPenClientEvent {
                 .withFaceTextures(FACE_TEXTURE,HIGHLIGHT_FACE_TEXTURE)
                 .highlightFace(selectedFace);
         }
+    
     }
+    @SubscribeEvent
+    public static void onClientTick(ClientTickEvent.Pre event) {
+        Outliner.getInstance().tickOutlines();
+    }
+
+    @SubscribeEvent
+    public static void onRenderWorld(RenderLevelStageEvent event) {
+        if (event.getStage() != RenderLevelStageEvent.Stage.AFTER_PARTICLES) return;
+
+        PoseStack ms = event.getPoseStack();
+		Vec3 cameraPos = Minecraft.getInstance().gameRenderer.getMainCamera().getPosition();
+		float partialTicks = AnimationTickHolder.getPartialTicks();
+
+		ms.pushPose();
+		SuperRenderTypeBuffer buffer = DefaultSuperRenderTypeBuffer.getInstance();
+        
+		Outliner.getInstance().renderOutlines(ms, buffer, cameraPos, partialTicks);
+
+		buffer.draw();
+		ms.popPose();
+	}
+
 
     @SubscribeEvent
     public static void onMouseScroll(InputEvent.MouseScrollingEvent event) {

@@ -153,9 +153,6 @@ dependencies {
     "additionalRuntimeClasspath"("cn.hutool:hutool-core:${project.property("hutool_version")}")
     jarJar("cn.hutool:hutool-core:${project.property("hutool_version")}")
 
-    compileOnly("dev.engine-room.flywheel:flywheel-neoforge-api-${project.property("minecraft_version")}:${project.property("flywheel_version")}")
-    implementation("net.createmod.ponder:Ponder-NeoForge-${project.property("minecraft_version")}:${project.property("ponder_version")}")?.let { jarJar(it) }
-    
 }
 
 val generateModMetadata = tasks.register<ProcessResources>("generateModMetadata") {
