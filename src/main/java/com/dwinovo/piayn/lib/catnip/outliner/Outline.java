@@ -22,6 +22,16 @@ import net.minecraft.core.Direction;
 import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
 
+/**
+ * 轮廓渲染的抽象基类。
+ * <p>
+ * 为所有具体轮廓（线段、AABB、方块簇、物品等）提供：
+ * 1) 渲染入口 {@link #render(PoseStack, SuperRenderTypeBuffer, Vec3, float)}；
+ * 2) 逐帧更新入口 {@link #tick()}；
+ * 3) 常用几何写入工具（如将线段“膨胀”为细长方体、写入方体/四边形）。
+ * <p>
+ * 每个实例都持有一个可链式配置的 {@link OutlineParams}，用于控制颜色、透明度、线宽、贴图与裁剪等。
+ */
 public abstract class Outline {
 
 	protected final OutlineParams params;
@@ -41,10 +51,36 @@ public abstract class Outline {
 		return params;
 	}
 
+	/**
+	 * 渲染当前轮廓。
+	 *
+	 * @param ms     当前的 PoseStack（模型-视图矩阵栈）
+	 * @param buffer 三阶段的顶点缓冲源（early/default/late）
+	 * @param camera 相机在世界坐标的位置，用于将世界坐标换算到相机空间
+	 * @param pt     partial ticks（帧间插值），用于在渲染时进行平滑插值
+	 */
 	public abstract void render(PoseStack ms, SuperRenderTypeBuffer buffer, Vec3 camera, float pt);
 
+	/**
+	 * 每 tick 更新一次（默认空实现）。
+	 * <p>
+	 * 用于如“追踪 AABB/线段末端”等动画推进逻辑。
+	 */
 	public void tick() {}
 
+	/**
+	 * 将一条 3D 线段写入为“细长方体”的顶点（具备宽度的线），便于使用四边形管线渲染。
+	 *
+	 * @param poseStack      当前 PoseStack
+	 * @param consumer       顶点写入器
+	 * @param camera         相机位置（世界坐标）
+	 * @param start          线段起点（世界坐标）
+	 * @param end            线段终点（世界坐标）
+	 * @param width          线宽（世界单位）
+	 * @param color          颜色（RGBA，0-1）
+	 * @param lightmap       光照值
+	 * @param disableNormals 是否禁用法线（可减少某些光照问题）
+	 */
 	public void bufferCuboidLine(PoseStack poseStack, VertexConsumer consumer, Vec3 camera, Vector3d start, Vector3d end,
 								 float width, Vector4f color, int lightmap, boolean disableNormals) {
 		Vector3f diff = this.diffPosTemp;
@@ -65,6 +101,9 @@ public abstract class Outline {
 		poseStack.popPose();
 	}
 
+	/**
+	 * 同上，但以“起点 + 方向 + 长度”的形式在当前局部坐标写入细长方体。
+	 */
 	public void bufferCuboidLine(PoseStack.Pose pose, VertexConsumer consumer, Vector3f origin, Direction direction,
 								 float length, float width, Vector4f color, int lightmap, boolean disableNormals) {
 		Vector3f minPos = minPosTemp;
@@ -98,6 +137,9 @@ public abstract class Outline {
 		bufferCuboid(pose, consumer, minPos, maxPos, color, lightmap, disableNormals);
 	}
 
+	/**
+	 * 在当前局部坐标写入一个轴对齐方体的六个面（可带法线、光照、颜色）。
+	 */
 	public void bufferCuboid(PoseStack.Pose pose, VertexConsumer consumer, Vector3f minPos, Vector3f maxPos,
 							 Vector4f color, int lightmap, boolean disableNormals) {
 		Vector4f posTransformTemp = this.posTransformTemp;
@@ -508,6 +550,16 @@ public abstract class Outline {
 				;
 	}
 
+	/**
+	 * 轮廓的参数对象，支持链式设置。
+	 *
+	 * <p>主要包含：
+	 * - 颜色与透明度（alpha 会在 Outliner 的渐隐中被修改）
+	 * - 线宽（可选择随 alpha 衰减）
+	 * - 面贴图与高亮的某个面
+	 * - 是否禁用背面裁剪、是否禁用线段法线
+	 * - 光照值
+	 */
 	public static class OutlineParams {
 		@Nullable protected BindableTexture faceTexture;
 		@Nullable protected BindableTexture highlightedFaceTexture;
@@ -531,51 +583,61 @@ public abstract class Outline {
 
 		// builder
 
+		/** 设置颜色（整数 RGB 或 ARGB，无 alpha 时默认 1.0） */
 		public OutlineParams colored(int color) {
 			rgb = new Color(color, false);
 			return this;
 		}
 
+		/** 设置颜色（从 Color 复制，避免外部修改影响内部） */
 		public OutlineParams colored(Color c) {
 			rgb = c.copy();
 			return this;
 		}
 
+		/** 设置光照值（通常 FULL_BRIGHT 或取决于环境） */
 		public OutlineParams lightmap(int light) {
 			lightmap = light;
 			return this;
 		}
 
+		/** 设置线宽（世界单位）。若开启 fadeLineWidth，则会乘以 alpha 做渐细。 */
 		public OutlineParams lineWidth(float width) {
 			this.lineWidth = width;
 			return this;
 		}
 
+		/** 设置所有面的贴图（若为空则不绘制面，仅绘制边）。 */
 		public OutlineParams withFaceTexture(@Nullable BindableTexture texture) {
 			this.faceTexture = texture;
 			return this;
 		}
 
+		/** 同时设置普通与高亮面的贴图（目前实现中统一使用 faceTexture）。 */
 		public OutlineParams clearTextures() {
 			return this.withFaceTextures(null, null);
 		}
 
+		/** 设置普通与高亮面的贴图。 */
 		public OutlineParams withFaceTextures(@Nullable BindableTexture texture, @Nullable BindableTexture highlightTexture) {
 			this.faceTexture = texture;
 			this.highlightedFaceTexture = highlightTexture;
 			return this;
 		}
 
+		/** 指定需要高亮显示的面（例如 AABB 的某个朝向）。 */
 		public OutlineParams highlightFace(@Nullable Direction face) {
 			highlightedFace = face;
 			return this;
 		}
 
+		/** 禁用线段法线（可规避某些角度下的光照异常）。 */
 		public OutlineParams disableLineNormals() {
 			disableLineNormals = true;
 			return this;
 		}
 
+		/** 禁用背面裁剪（观察者位于盒内时常用）。 */
 		public OutlineParams disableCull() {
 			disableCull = true;
 			return this;
@@ -583,6 +645,7 @@ public abstract class Outline {
 
 		// getter
 
+		/** 获取线宽（若开启 fadeLineWidth，则会乘以当前 alpha）。 */
 		public float getLineWidth() {
 			return fadeLineWidth ? alpha * lineWidth : lineWidth;
 		}
@@ -591,6 +654,7 @@ public abstract class Outline {
 			return highlightedFace;
 		}
 
+		/** 将当前颜色与 alpha 写入向量（供渲染方法复用）。 */
 		public void loadColor(Vector4f vec) {
 			vec.set(rgb.getRedAsFloat(), rgb.getGreenAsFloat(), rgb.getBlueAsFloat(), rgb.getAlphaAsFloat() * alpha);
 		}

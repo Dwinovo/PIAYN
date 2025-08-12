@@ -15,6 +15,13 @@ import net.minecraft.core.Direction;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
+/**
+ * 轴对齐包围盒（AABB）的轮廓渲染。
+ * <p>
+ * - 支持渲染面（可选贴图、可选高亮某个面、可选背面裁剪）。
+ * - 支持渲染边（使用 {@code bufferCuboidLine} 以具有厚度的线段绘制）。
+ * - 根据相机是否处于盒内，自动轻微“膨胀/收缩”几何，避免 Z-fighting。
+ */
 public class AABBOutline extends Outline {
 
 	protected AABB bb;
@@ -43,6 +50,9 @@ public class AABBOutline extends Outline {
 	}
 
 	@Override
+	/**
+	 * 主渲染入口：根据当前参数渲染 AABB 的面与边。
+	 */
 	public void render(PoseStack ms, SuperRenderTypeBuffer buffer, Vec3 camera, float pt) {
 		params.loadColor(colorTemp);
 		Vector4f color = colorTemp;
@@ -51,6 +61,12 @@ public class AABBOutline extends Outline {
 		renderBox(ms, buffer, camera, bb, color, lightmap, disableLineNormals);
 	}
 
+	/**
+	 * 将一个 AABB 渲染为：
+	 * 1) 半透明面（可贴图，可背面裁剪）；
+	 * 2) 实体边（带厚度）。
+	 * 会根据相机位置对方体做 1/128 的微小收缩/膨胀，以避免面与边重合造成的闪烁。
+	 */
 	protected void renderBox(PoseStack ms, SuperRenderTypeBuffer buffer, Vec3 camera, AABB box, Vector4f color, int lightmap, boolean disableLineNormals) {
 		Vector3f minPos = minPosTemp1;
 		Vector3f maxPos = maxPosTemp1;
@@ -73,6 +89,11 @@ public class AABBOutline extends Outline {
 		renderBoxEdges(ms, consumer, minPos, maxPos, lineWidth, color, lightmap, disableLineNormals);
 	}
 
+	/**
+	 * 渲染 AABB 的六个面（若未设置 {@code faceTexture} 则跳过）。
+	 * @param cull 是否启用背面裁剪
+	 * @param highlightedFace 指定高亮的单个面（颜色 alpha*1），其余面使用 alpha*0.5
+	 */
 	protected void renderBoxFaces(PoseStack ms, SuperRenderTypeBuffer buffer, boolean cull, Direction highlightedFace, Vector3f minPos, Vector3f maxPos, Vector4f color, int lightmap) {
 		PoseStack.Pose pose = ms.last();
 		renderBoxFace(pose, buffer, cull, highlightedFace, minPos, maxPos, Direction.DOWN, color, lightmap);
@@ -83,6 +104,9 @@ public class AABBOutline extends Outline {
 		renderBoxFace(pose, buffer, cull, highlightedFace, minPos, maxPos, Direction.EAST, color, lightmap);
 	}
 
+	/**
+	 * 渲染单个面（为贴图选择合适的半透明 RenderType，并根据是否高亮调整 alpha）。
+	 */
 	protected void renderBoxFace(PoseStack.Pose pose, SuperRenderTypeBuffer buffer, boolean cull, Direction highlightedFace, Vector3f minPos, Vector3f maxPos, Direction face, Vector4f color, int lightmap) {
 		boolean highlighted = face == highlightedFace;
 
@@ -102,6 +126,9 @@ public class AABBOutline extends Outline {
 		renderBoxFace(pose, consumer, minPos, maxPos, face, color, lightmap);
 	}
 
+	/**
+	 * 将指定面的四边形写入缓冲（使用当前 Pose/法线矩阵、颜色与光照）。
+	 */
 	protected void renderBoxFace(PoseStack.Pose pose, VertexConsumer consumer, Vector3f minPos, Vector3f maxPos, Direction face, Vector4f color, int lightmap) {
 		Vector3f pos0 = pos0Temp;
 		Vector3f pos1 = pos1Temp;

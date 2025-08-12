@@ -25,6 +25,13 @@ import net.minecraft.core.Direction.Axis;
 import net.minecraft.core.Direction.AxisDirection;
 import net.minecraft.world.phys.Vec3;
 
+/**
+ * 方块簇轮廓（多方块的外表面与边缘合并渲染）。
+ * <p>
+ * - 将内部相邻方块的内接面剔除，仅渲染可见外表面与轮廓边缘，减少重复绘制。
+ * - 面可使用半透明贴图（需设置 {@code OutlineParams.faceTexture}），边缘用实心轮廓线（有厚度）。
+ * - 通过一个锚点 {@code anchor} 作为局部坐标原点，提高大区域下的浮点精度。
+ */
 public class BlockClusterOutline extends Outline {
 
 	private final Cluster cluster;
@@ -42,6 +49,7 @@ public class BlockClusterOutline extends Outline {
 	}
 
 	@Override
+	/** 主渲染入口：先画面（若有贴图），再画边。 */
 	public void render(PoseStack ms, SuperRenderTypeBuffer buffer, Vec3 camera, float pt) {
 		params.loadColor(colorTemp);
 		Vector4f color = colorTemp;
@@ -52,6 +60,10 @@ public class BlockClusterOutline extends Outline {
 		renderEdges(ms, buffer, camera, pt, color, lightmap, disableLineNormals);
 	}
 
+	/**
+	 * 渲染所有可见外表面（需要设置 {@code faceTexture}，否则跳过）。
+	 * 使用晚期缓冲（late buffer）+ 半透明 RenderType，保证先后顺序与透明度正确。
+	 */
 	protected void renderFaces(PoseStack ms, SuperRenderTypeBuffer buffer, Vec3 camera, float pt, Vector4f color, int lightmap) {
 		BindableTexture faceTexture = params.faceTexture;
 		if (faceTexture == null)
@@ -78,6 +90,10 @@ public class BlockClusterOutline extends Outline {
 		ms.popPose();
 	}
 
+	/**
+	 * 渲染所有可见边缘（以具有厚度的线段表示）。
+	 * 使用早/默认缓冲（solid）确保与面正确排序。
+	 */
 	protected void renderEdges(PoseStack ms, SuperRenderTypeBuffer buffer, Vec3 camera, float pt, Vector4f color, int lightmap, boolean disableNormals) {
 		float lineWidth = params.getLineWidth();
 		if (lineWidth == 0)
@@ -103,6 +119,9 @@ public class BlockClusterOutline extends Outline {
 		ms.popPose();
 	}
 
+	/**
+	 * 计算一个单位方块在不同朝向下的四个顶点与法线（用于贴图 UV 与法线光照）。
+	 */
 	public static void loadFaceData(Direction face, Vector3f pos0, Vector3f pos1, Vector3f pos2, Vector3f pos3, Vector3f normal) {
 		switch (face) {
 			case DOWN -> {
@@ -163,6 +182,9 @@ public class BlockClusterOutline extends Outline {
 		pos3.add(x, y, z);
 	}
 
+	/**
+	 * 在局部坐标中将一个方块在某个朝向上的四边形写入缓冲，带少量偏移（1/128）以避免 Z-fighting。
+	 */
 	protected void bufferBlockFace(PoseStack.Pose pose, VertexConsumer consumer, BlockPos pos, Direction face, Vector4f color, int lightmap) {
 		Vector3f pos0 = pos0Temp;
 		Vector3f pos1 = pos1Temp;
@@ -179,6 +201,12 @@ public class BlockClusterOutline extends Outline {
 		bufferQuad(pose, consumer, pos0, pos1, pos2, pos3, color, lightmap, normal);
 	}
 
+	/**
+	 * 用于收集/合并可见面与可见边的数据结构。
+	 * <p>
+	 * - visibleFaces: 每个外表面（位置+面法线）映射一个朝向符号（正/负）。
+	 * - visibleEdges: 每条外边（位置+轴）。
+	 */
 	private static class Cluster {
 
 		private BlockPos anchor;
