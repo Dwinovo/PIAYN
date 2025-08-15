@@ -4,13 +4,12 @@ import org.slf4j.Logger;
 
 import com.dwinovo.piayn.PIAYN;
 import com.dwinovo.piayn.client.gui.screen.schematic.SchematicSaveScreen;
-
+import com.dwinovo.piayn.client.renderer.catnip.animation.AnimationTickHolder;
+import com.dwinovo.piayn.client.renderer.catnip.outliner.Outliner;
+import com.dwinovo.piayn.client.renderer.catnip.render.BindableTexture;
+import com.dwinovo.piayn.client.renderer.catnip.render.DefaultSuperRenderTypeBuffer;
+import com.dwinovo.piayn.client.renderer.catnip.render.SuperRenderTypeBuffer;
 import com.dwinovo.piayn.item.SchematicPenItem;
-import com.dwinovo.piayn.lib.catnip.animation.AnimationTickHolder;
-import com.dwinovo.piayn.lib.catnip.outliner.Outliner;
-import com.dwinovo.piayn.lib.catnip.render.BindableTexture;
-import com.dwinovo.piayn.lib.catnip.render.DefaultSuperRenderTypeBuffer;
-import com.dwinovo.piayn.lib.catnip.render.SuperRenderTypeBuffer;
 import com.dwinovo.piayn.utils.RaycastHelper;
 import com.mojang.logging.LogUtils;
 import com.mojang.blaze3d.platform.InputConstants;

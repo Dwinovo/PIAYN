@@ -1,8 +1,8 @@
 package com.dwinovo.piayn.client.gui.screen.schematic;
 
 import com.dwinovo.piayn.PIAYN;
-import com.dwinovo.piayn.client.gui.component.SchematicSaveButton;
-import com.dwinovo.piayn.schematic.nbt.NbtStructureIO;
+import com.dwinovo.piayn.client.gui.component.button.SchematicSaveButton;
+import com.dwinovo.piayn.world.schematic.io.NbtStructureIO;
 import com.mojang.logging.LogUtils;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.EditBox;

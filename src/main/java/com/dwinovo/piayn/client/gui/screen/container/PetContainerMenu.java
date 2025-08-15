@@ -8,7 +8,7 @@ import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
-import com.dwinovo.piayn.client.gui.screen.container.slot.PetMainHandSlot;
+import com.dwinovo.piayn.client.gui.component.slot.PetMainHandSlot;
 import com.dwinovo.piayn.entity.PetEntity;
 import com.dwinovo.piayn.init.InitMenuTypes;
 

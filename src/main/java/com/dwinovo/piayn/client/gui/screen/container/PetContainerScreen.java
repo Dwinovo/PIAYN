@@ -9,14 +9,14 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 import org.jetbrains.annotations.NotNull;
 import com.dwinovo.piayn.PIAYN;
-import com.dwinovo.piayn.client.gui.screen.IPetScreenButtons;
+import com.dwinovo.piayn.client.gui.screen.IScreenButtonProvider;
 import com.dwinovo.piayn.entity.PetEntity;
 
 /**
  * 宠物GUI界面类
  * 负责渲染宠物的GUI界面
  */
-public class PetContainerScreen extends AbstractContainerScreen<PetContainerMenu> implements IPetScreenButtons {
+public class PetContainerScreen extends AbstractContainerScreen<PetContainerMenu> implements IScreenButtonProvider {
     // GUI纹理路径
     private static final ResourceLocation GUI_TEXTURE = 
         ResourceLocation.fromNamespaceAndPath(PIAYN.MOD_ID, "textures/gui/screen/entity_container.png");

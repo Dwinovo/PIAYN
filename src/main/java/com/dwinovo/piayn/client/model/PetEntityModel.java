@@ -3,7 +3,7 @@ package com.dwinovo.piayn.client.model;
 
 
 import com.dwinovo.piayn.PIAYN;
-import com.dwinovo.piayn.client.resource.model.ClientModelDataManager;
+import com.dwinovo.piayn.client.resource.modelData.ClientModelDataManager;
 import com.dwinovo.piayn.entity.PetEntity;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;

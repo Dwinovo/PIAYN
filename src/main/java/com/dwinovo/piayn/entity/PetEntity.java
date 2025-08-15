@@ -27,7 +27,7 @@ import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 
-import com.dwinovo.piayn.client.resource.model.ClientModelDataManager;
+import com.dwinovo.piayn.client.resource.modelData.ClientModelDataManager;
 import com.dwinovo.piayn.entity.container.impl.PetContainerHandler;
 import com.mojang.logging.LogUtils;
 import software.bernie.geckolib.animatable.GeoEntity;
