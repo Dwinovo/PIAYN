@@ -37,6 +37,22 @@ import com.mojang.blaze3d.vertex.PoseStack;
 
 import org.lwjgl.glfw.GLFW;
 
+/**
+ * 蓝图笔（客户端）交互与可视化事件：
+ *
+ * 职责：
+ * - 在客户端本地维护选择状态（firstPos/secondPos/selectedPos/selectedFace/range）；
+ * - 在 AFTER_PARTICLES 阶段用 Outliner 渲染选区轮廓与高亮面；
+ * - 监听滚轮事件，沿当前选中面缩放选区尺寸；
+ * - 监听右键：Shift 清空；两次点击设置 first/second；已有 second 时打开保存界面。
+ *
+ * 设计要点：
+ * - 完全客户端本地状态，不写入服务端，符合蓝图框选的预览/编辑性质；
+ * - Ctrl 下使用 eye + look * range 的投射点便于“空中”预览尺寸；
+ * - 命中垂直面且不可替换时，上移一格避免覆盖；
+ * - selectedFace 用于确定滚轮缩放朝向，若相机位于盒内则滚轮方向取反以符合直觉；
+ * - Outliner 使用“槽位句柄”以实现追踪更新与统一渲染。
+ */
 @EventBusSubscriber(modid = PIAYN.MOD_ID,value = Dist.CLIENT)
 public class SchematicPenClientEvent {
     public static final Logger LOGGER = LogUtils.getLogger();
@@ -127,6 +143,9 @@ public class SchematicPenClientEvent {
     }
 
     @SubscribeEvent
+    /**
+     * 统一的 Outliner 渲染：在 AFTER_PARTICLES 阶段从全局缓冲中绘制追踪的轮廓与高亮面。
+     */
     public static void onRenderWorld(RenderLevelStageEvent event) {
         if (event.getStage() != RenderLevelStageEvent.Stage.AFTER_PARTICLES) return;
 
@@ -145,6 +164,15 @@ public class SchematicPenClientEvent {
 
 
     @SubscribeEvent
+    /**
+     * 滚轮缩放逻辑：
+     * - Ctrl + 滚轮生效；
+     * - 未设置 secondPos 时，调整“投射距离 range”以改变 Ctrl 预览长度；
+     * - 已有完整区域且存在 selectedFace 时，沿该面方向扩大/收缩 AABB；
+     * - 若相机在盒内，则滚轮方向取反，符合“朝向相机”直觉；
+     * - 调整结果回写到 firstPos/secondPos；
+     * - 事件被取消以阻止原生缩放。
+     */
     public static void onMouseScroll(InputEvent.MouseScrollingEvent event) {
         Minecraft mc = Minecraft.getInstance();
         Player player = mc.player;
@@ -248,6 +276,12 @@ public class SchematicPenClientEvent {
             || InputConstants.isKeyDown(handle, GLFW.GLFW_KEY_RIGHT_CONTROL);
     }
 
+    /**
+     * 基于 first/second/lookingAt 生成当前可视化 AABB：
+     * - 未设置任何点：仅在 lookingAt 非空时显示 1x1x1 的预览方块；
+     * - 仅有 first：与 lookingAt 形成对角；
+     * - 有 first+second：返回封闭盒。
+     */
     private static AABB getSelectionBox(BlockPos lookingAt, BlockPos first, BlockPos second) {
         if (second == null) {
             if (first == null)
@@ -260,6 +294,9 @@ public class SchematicPenClientEvent {
             Math.max(first.getX(), second.getX()) + 1, Math.max(first.getY(), second.getY()) + 1, Math.max(first.getZ(), second.getZ()) + 1);
     }
 
+    /**
+     * 根据两个端点生成 AABB（不+1 的闭区间盒，后续用 expand/inflate/withFaceTextures 进行可视化调整）。
+     */
     private static AABB makeBox(BlockPos a, BlockPos b) {
         int minX = Math.min(a.getX(), b.getX());
         int minY = Math.min(a.getY(), b.getY());

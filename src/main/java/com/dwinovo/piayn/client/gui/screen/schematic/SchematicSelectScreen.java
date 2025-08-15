@@ -4,12 +4,15 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.core.component.DataComponents;
-import net.minecraft.nbt.CompoundTag;
+import com.dwinovo.piayn.client.resource.schematic.ClientSchematicManager;
+import com.dwinovo.piayn.init.InitComponent;
+import com.dwinovo.piayn.world.schematic.io.NbtStructureIO;
+import com.dwinovo.piayn.world.schematic.level.SchematicLevel;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.component.CustomData;
-
+import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplate;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.entity.player.Player;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -19,9 +22,25 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+/**
+ * 蓝图选择界面（客户端）。
+ *
+ * 职责与数据流：
+ * - 从本地目录 {@code config/piayn/schematics} 列出 .nbt 文件。
+ * - 玩家点击某个文件名后，加载为 {@link StructureTemplate}，
+ *   使用 {@link ClientSchematicManager} 创建 {@link SchematicLevel}（局部坐标，原点放置），
+ *   并将被选文件名写入玩家物品的 {@code InitComponent.SCHEMATIC_NAME} 数据组件。
+ * - 不直接参与渲染，渲染由 {@code SchematicPaperClientEvent} 在 {@code RenderLevelStageEvent} 中完成。
+ *
+ * 设计取舍：
+ * - 界面逻辑尽量简洁，仅展示文件列表和选择反馈；
+ * - 只显示最多 7 条，避免做滚动/分页逻辑（可未来扩展）；
+ * - 不缓存模板与关卡，由 {@link ClientSchematicManager} 负责当前活跃关卡的生命周期。
+ */
 public class SchematicSelectScreen extends Screen {
     private final ItemStack targetStack;
 
+    /** 本地蓝图目录：config/piayn/schematics（以游戏运行目录为根）。 */
     private static final Path MODELS_DIR = Paths.get(System.getProperty("user.dir"), "config", "piayn", "schematics");
 
     private final List<String> nbtFiles = new ArrayList<>();
@@ -32,12 +51,16 @@ public class SchematicSelectScreen extends Screen {
     private int panelWidth = 220;
     private int panelHeight = 180;
 
+    /**
+     * @param targetStack 用于写入数据组件（SCHEMATIC_NAME）的目标物品（如蓝图纸）。
+     */
     public SchematicSelectScreen(ItemStack targetStack) {
         super(Component.literal("选择蓝图 NBT"));
         this.targetStack = targetStack;
     }
 
     @Override
+    /** 初始化布局与列表（进入界面或窗口尺寸变化时调用）。 */
     protected void init() {
         super.init();
         this.left = (this.width - panelWidth) / 2;
@@ -47,6 +70,11 @@ public class SchematicSelectScreen extends Screen {
         buildButtons();
     }
 
+    /**
+     * 扫描本地目录，收集 .nbt 文件名（不含路径）。
+     * - 若目录不存在则创建空目录并返回空列表。
+     * - 失败时静默处理，界面提示“未找到 .nbt 文件”。
+     */
     private void loadNbtFiles() {
         nbtFiles.clear();
         if (!Files.isDirectory(MODELS_DIR)) {
@@ -63,6 +91,13 @@ public class SchematicSelectScreen extends Screen {
         }
     }
 
+    /**
+     * 构建按钮列表（最多显示 7 条，避免滚动条复杂度）。
+     * 可扩展：
+     * - 分页/滚动视图；
+     * - 文件预览缩略图；
+     * - 搜索过滤。
+     */
     private void buildButtons() {
         this.clearWidgets();
         this.fileButtons.clear();
@@ -91,22 +126,47 @@ public class SchematicSelectScreen extends Screen {
         this.addRenderableWidget(close);
     }
 
+    /**
+     * 选择指定文件：
+     * 1) 使用 {@link NbtStructureIO#loadNbtToStructureTemplate(Level, String)} 读取文件为 {@link StructureTemplate}
+     * 2) 通过 {@link ClientSchematicManager} 创建 {@link SchematicLevel} 并设为当前活跃关卡
+     * 3) 将文件名写入 {@code targetStack} 的 {@code InitComponent.SCHEMATIC_NAME} 数据组件
+     * 4) 向玩家显示提示并关闭界面
+     */
     private void onSelect(String fileName) {
-        // 写入自定义数据：Selected=true, File=fileName
-        CompoundTag tag = new CompoundTag();
-        tag.putBoolean("Selected", true);
-        tag.putString("File", fileName);
-        targetStack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
-
-        // 提示并关闭界面
         Minecraft mc = Minecraft.getInstance();
-        if (mc.player != null) {
-            mc.player.displayClientMessage(Component.literal("已选择蓝图: " + fileName), true);
+        Level level = mc.level;
+        Player player = mc.player;
+        if (level == null || player == null) return;
+        
+        try {
+            // 加载StructureTemplate
+            StructureTemplate template = NbtStructureIO.loadNbtToStructureTemplate(level, fileName);
+            
+            // 通过ClientSchematicManager创建SchematicLevel
+            SchematicLevel schematicLevel = ClientSchematicManager.getInstance().createSchematicLevel(template, level);
+            ClientSchematicManager.getInstance().setCurrentLevel(schematicLevel);
+            
+            // 使用SCHEMATIC_NAME数据组件存储文件名
+            targetStack.set(InitComponent.SCHEMATIC_NAME.get(), fileName);
+
+            player.displayClientMessage(Component.literal("已选择蓝图: " + fileName), true);
+            onClose();
+            
+        } catch (IOException e) {
+            // 加载失败时的处理
+            player.displayClientMessage(Component.literal("加载蓝图失败: " + fileName), true);
+            e.printStackTrace();
         }
-        onClose();
     }
 
     @Override
+    /**
+     * 渲染界面：
+     * - 背景在 {@link #renderBackground} 中绘制；
+     * - 此处绘制标题与空列表提示；
+     * - 元素布局固定尺寸，未引入复杂的缩放或自适应逻辑。
+     */
     public void render(GuiGraphics gfx, int mouseX, int mouseY, float partialTick) {
         
         super.render(gfx, mouseX, mouseY, partialTick);
@@ -120,12 +180,14 @@ public class SchematicSelectScreen extends Screen {
         
     }
     @Override
+    /** 简单的半透明矩形作为面板背景。 */
     public void renderBackground(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
         super.renderBackground(guiGraphics, mouseX, mouseY, partialTick);
         guiGraphics.fill(left, top, left + panelWidth, top + panelHeight, 0xCC000000);
     }
 
     @Override
+    /** 非暂停界面，便于游戏内快速选择。 */
     public boolean isPauseScreen() {
         return false;
     }

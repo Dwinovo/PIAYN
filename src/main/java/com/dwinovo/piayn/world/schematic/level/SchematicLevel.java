@@ -34,6 +34,15 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.ticks.BlackholeTickAccess;
 import net.minecraft.world.ticks.LevelTickAccess;
 
+/**
+ * 仅用于“蓝图数据”的轻量级关卡视图。
+ *
+ * 设计原则：
+ * - 只存储“相对(0,0,0)”坐标下的方块/方块实体/实体数据，不关心锚点。
+ *   由渲染器（如 {@code SchematicPreviewRenderer}）将局部坐标 + anchor 转为世界坐标。
+ * - 提供最小化的 Level/ServerLevelAccessor 能力，以便复用 vanilla 的模型/方块渲染管线。
+ * - 不参与真实世界交互：光照恒定、刻（tick）被黑洞化、玩家列表为空等。
+ */
 public class SchematicLevel extends WrappedLevel implements ServerLevelAccessor, ISchematicLevelAccessor {
     protected Map<BlockPos, BlockState> blocks;
     protected Map<BlockPos, BlockEntity> blockEntities;
@@ -41,20 +50,18 @@ public class SchematicLevel extends WrappedLevel implements ServerLevelAccessor,
     protected List<Entity> entities;
     protected BoundingBox bounds;
 
-    public BlockPos anchor;
     public boolean renderMode;
 
+    /**
+     * 构造：包裹一个真实的 {@link Level} 以复用其注册表/资源等上下文。
+     * 创建自定义的 {@link SchematicChunkSource} 避免真实区块依赖。
+     */
     public SchematicLevel(Level original) {
-        this(BlockPos.ZERO, original);
-    }
-
-    public SchematicLevel(BlockPos anchor, Level original) {
         super(original);
         setChunkSource(new SchematicChunkSource(this));
         this.blocks = new HashMap<>();
         this.blockEntities = new HashMap<>();
         this.bounds = new BoundingBox(BlockPos.ZERO);
-        this.anchor = anchor;
         this.entities = new ArrayList<>();
         this.renderedBlockEntities = new ArrayList<>();
     }
@@ -75,12 +82,17 @@ public class SchematicLevel extends WrappedLevel implements ServerLevelAccessor,
     }
 
     @Override
+    /**
+     * 懒创建方块实体：
+     * - 若该位置存在需要方块实体的方块，按需 new 并缓存在 {@code blockEntities}。
+     * - 同时将其加入 {@code renderedBlockEntities}，便于渲染端遍历（如需要）。
+     */
     public BlockEntity getBlockEntity(BlockPos pos) {
         if (isOutsideBuildHeight(pos))
             return null;
         if (blockEntities.containsKey(pos))
             return blockEntities.get(pos);
-        if (!blocks.containsKey(pos.subtract(anchor)))
+        if (!blocks.containsKey(pos))
             return null;
 
         BlockState blockState = getBlockState(pos);
@@ -96,14 +108,22 @@ public class SchematicLevel extends WrappedLevel implements ServerLevelAccessor,
         return null;
     }
 
+    /**
+     * 当方块实体被添加时，补上其 level 引用为本 SchematicLevel。
+     */
     protected void onBEadded(BlockEntity blockEntity, BlockPos pos) {
         blockEntity.setLevel(this);
     }
 
     @Override
-    public BlockState getBlockState(BlockPos globalPos) {
-        BlockPos pos = globalPos.subtract(anchor);
-
+    /**
+     * 查询局部坐标下的方块状态。
+     * - 若在蓝图下方一层（y == bounds.minY - 1）且非渲染模式，返回一层泥土以方便“打印”或预览对比。
+     * - 若在 bounds 内并存在则返回处理后的状态，否则为空气。
+     *
+     * 提示：渲染期间会设置 {@link #renderMode} = true，避免出现“打印辅助层”。
+     */
+    public BlockState getBlockState(BlockPos pos) {
         if (pos.getY() - bounds.minY() == -1 && !renderMode)
             return Blocks.DIRT.defaultBlockState();
         if (getBounds().isInside(pos) && blocks.containsKey(pos))
@@ -117,31 +137,47 @@ public class SchematicLevel extends WrappedLevel implements ServerLevelAccessor,
     }
 
     @Override
+    /**
+     * 流体状态直接由方块状态提供。
+     */
     public FluidState getFluidState(BlockPos pos) {
         return getBlockState(pos).getFluidState();
     }
 
     @Override
+    /**
+     * 统一返回平原生物群系，保证模型颜色/草色等可解析即可。
+     */
     public Holder<Biome> getBiome(BlockPos pos) {
         return level.registryAccess().lookupOrThrow(Registries.BIOME).getOrThrow(Biomes.PLAINS);
     }
 
     @Override
+    /**
+     * 简化光照：恒为满亮度，避免真实光照查询。
+     */
     public int getBrightness(LightLayer lightLayer, BlockPos pos) {
         return 15;
     }
 
     @Override
+    /**
+     * 取消阴影衰减，保证预览清晰。
+     */
     public float getShade(Direction face, boolean hasShade) {
         return 1f;
     }
 
     @Override
+    /**
+     * 刻管理黑洞：不产生真实 tick。
+     */
     public LevelTickAccess<Block> getBlockTicks() {
         return BlackholeTickAccess.emptyLevelList();
     }
 
     @Override
+    /** 同上，流体刻黑洞。 */
     public LevelTickAccess<Fluid> getFluidTicks() {
         return BlackholeTickAccess.emptyLevelList();
     }
@@ -182,9 +218,14 @@ public class SchematicLevel extends WrappedLevel implements ServerLevelAccessor,
     }
 
     @Override
+    /**
+     * 设置局部方块并更新包围盒。
+     * - 每次写入都会扩展 {@link #bounds} 以包含该位置，用于后续遍历渲染与区域判断。
+     * - 若方块类型变化导致原有方块实体无效，则清理对应缓存。
+     * - 最后尝试懒创建方块实体并缓存。
+     */
     public boolean setBlock(BlockPos pos, BlockState arg1, int arg2) {
-        pos = pos.immutable()
-                .subtract(anchor);
+        pos = pos.immutable();
         // expand bounds to include pos
         int minX = Math.min(bounds.minX(), pos.getX());
         int minY = Math.min(bounds.minY(), pos.getY());
@@ -233,6 +274,10 @@ public class SchematicLevel extends WrappedLevel implements ServerLevelAccessor,
         return renderedBlockEntities;
     }
 
+    /**
+     * 针对“打印/预览”的状态调整：
+     * - 例如关闭熔炉一类方块的 LIT 属性，避免预览时出现“点亮”假象。
+     */
     protected BlockState processBlockStateForPrinting(BlockState state) {
         if (state.getBlock() instanceof AbstractFurnaceBlock && state.hasProperty(BlockStateProperties.LIT))
             state = state.setValue(BlockStateProperties.LIT, false);
@@ -240,6 +285,10 @@ public class SchematicLevel extends WrappedLevel implements ServerLevelAccessor,
     }
 
     @Override
+    /**
+     * 此方法仅在服务端环境可用；客户端直接调用会抛错。
+     * 之所以保留，是为了与某些 vanilla/NeoForge 接口兼容。
+     */
     public ServerLevel getLevel() {
         if (this.level instanceof ServerLevel) {
             return (ServerLevel) this.level;
