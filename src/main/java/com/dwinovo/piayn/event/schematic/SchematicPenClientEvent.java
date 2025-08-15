@@ -7,8 +7,6 @@ import com.dwinovo.piayn.client.gui.screen.schematic.SchematicSaveScreen;
 import com.dwinovo.piayn.client.renderer.catnip.animation.AnimationTickHolder;
 import com.dwinovo.piayn.client.renderer.catnip.outliner.Outliner;
 import com.dwinovo.piayn.client.renderer.catnip.render.BindableTexture;
-import com.dwinovo.piayn.client.renderer.catnip.render.DefaultSuperRenderTypeBuffer;
-import com.dwinovo.piayn.client.renderer.catnip.render.SuperRenderTypeBuffer;
 import com.dwinovo.piayn.item.SchematicPenItem;
 import com.dwinovo.piayn.utils.RaycastHelper;
 import com.mojang.logging.LogUtils;
@@ -31,10 +29,7 @@ import net.neoforged.api.distmarker.Dist;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
-import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.client.event.InputEvent;
-import com.mojang.blaze3d.vertex.PoseStack;
-
 import org.lwjgl.glfw.GLFW;
 
 /**
@@ -137,32 +132,7 @@ public class SchematicPenClientEvent {
         }
     
     }
-    @SubscribeEvent
-    public static void onClientTick(ClientTickEvent.Pre event) {
-        Outliner.getInstance().tickOutlines();
-    }
-
-    @SubscribeEvent
-    /**
-     * 统一的 Outliner 渲染：在 AFTER_PARTICLES 阶段从全局缓冲中绘制追踪的轮廓与高亮面。
-     */
-    public static void onRenderWorld(RenderLevelStageEvent event) {
-        if (event.getStage() != RenderLevelStageEvent.Stage.AFTER_PARTICLES) return;
-
-        PoseStack ms = event.getPoseStack();
-		Vec3 cameraPos = Minecraft.getInstance().gameRenderer.getMainCamera().getPosition();
-		float partialTicks = AnimationTickHolder.getPartialTicks();
-
-		ms.pushPose();
-		SuperRenderTypeBuffer buffer = DefaultSuperRenderTypeBuffer.getInstance();
-        
-		Outliner.getInstance().renderOutlines(ms, buffer, cameraPos, partialTicks);
-
-		buffer.draw();
-		ms.popPose();
-	}
-
-
+    
     @SubscribeEvent
     /**
      * 滚轮缩放逻辑：

@@ -1,6 +1,7 @@
 package com.dwinovo.piayn.client.renderer.schematic;
 
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.dwinovo.piayn.client.renderer.catnip.outliner.Outliner;
 import com.dwinovo.piayn.client.renderer.catnip.render.SuperRenderTypeBuffer;
 import com.dwinovo.piayn.world.schematic.level.SchematicLevel;
 
@@ -17,8 +18,12 @@ import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.structure.BoundingBox;
-import net.neoforged.neoforge.client.model.data.ModelData;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
+import net.neoforged.neoforge.client.model.data.ModelData;
+import com.mojang.blaze3d.vertex.VertexConsumer;
+import com.mojang.logging.LogUtils;
+import org.slf4j.Logger;
 
 /**
  * 蓝图预览渲染器（精简版）。
@@ -35,6 +40,17 @@ public class SchematicPreviewRenderer {
     private Vec3 prevAnchor = Vec3.ZERO;
     private Vec3 currAnchor = Vec3.ZERO;
     private Vec3 targetAnchor = Vec3.ZERO;
+
+    // 幽灵渲染参数（可日后做成可配置项）
+    private static final float GHOST_ALPHA = 0.55f; // 半透明强度
+    private static final float TINT_R = 0.9f;       // 轻微偏冷的高亮蓝白色
+    private static final float TINT_G = 0.95f;
+    private static final float TINT_B = 1.0f;
+
+    private static final Object OUTLINE_SLOT = new Object();
+
+    // 日志
+    private static final Logger LOGGER = LogUtils.getLogger();
 
     /**
      * 每帧/每tick推进一次锚点的“追踪”插值。
@@ -74,7 +90,7 @@ public class SchematicPreviewRenderer {
      * 实现细节：
      * - 先根据 {@code prevAnchor}/{@code currAnchor} 与 partialTick 计算插值锚点，并拆分为整数基准 + 小数渲染偏移，
      *   保证方块网格对齐，避免模型因浮点偏移导致抖动。
-     * - 遍历结构包围盒 {@link BoundingBox} 中的每个局部方块位置，查询方块状态与模型数据，按照模型声明的 render layer 选择性渲染。
+     * - 遍历结构包围盒 {@link BoundingBox} 中的每个局部方块位置，查询方块状态与模型数据，以半透明层进行一次性渲染（幽灵效果）。
      */
     public void render(PoseStack ms, SuperRenderTypeBuffer buffers, float partialTick, SchematicLevel schematic, BlockPos anchor) {
         if (schematic == null)
@@ -90,6 +106,11 @@ public class SchematicPreviewRenderer {
         BlockPos.MutableBlockPos mutable = new BlockPos.MutableBlockPos();
         BoundingBox bounds = schematic.getBounds();
 
+        // 记录局部体素边界（相对原点）
+        int minX = bounds.minX(), minY = bounds.minY(), minZ = bounds.minZ();
+        int maxX = bounds.maxX(), maxY = bounds.maxY(), maxZ = bounds.maxZ();
+
+
         // 推进一次追踪到目标锚点
         tickTowards(Vec3.atLowerCornerOf(anchor));
 
@@ -100,6 +121,17 @@ public class SchematicPreviewRenderer {
             Mth.lerp(pt, this.prevAnchor.y, this.currAnchor.y),
             Mth.lerp(pt, this.prevAnchor.z, this.currAnchor.z)
         );
+        // 使用插值后的锚点构造含平滑过渡的小数坐标的 AABB（上界开区间：max+1）
+        double minXd = minX + interpAnchor.x;
+        double minYd = minY + interpAnchor.y;
+        double minZd = minZ + interpAnchor.z;
+        double maxXd = maxX + 1 + interpAnchor.x;
+        double maxYd = maxY + 1 + interpAnchor.y;
+        double maxZd = maxZ + 1 + interpAnchor.z;
+        AABB previewAABB = new AABB(minXd, minYd, minZd, maxXd, maxYd, maxZd);
+        Outliner.getInstance().showAABB(OUTLINE_SLOT, previewAABB)
+                .colored(0x6886c5)
+                .lineWidth(1 / 16f);
         // 拆分为整数网格基准与小数偏移：保持方块坐标稳定，小数部分作为渲染平移偏移
         Vec3 baseAnchor = Vec3.atLowerCornerOf(anchor);
         Vec3 renderOffset = interpAnchor.subtract(baseAnchor);
@@ -107,50 +139,92 @@ public class SchematicPreviewRenderer {
         schematic.renderMode = true;
         ModelBlockRenderer.enableCaching();
 
-        // 逐层渲染：仅当模型声明会在该 RenderType 下渲染时才绘制
-        for (RenderType layer : RenderType.chunkBufferLayers()) {
-            for (BlockPos localPos : BlockPos.betweenClosed(bounds.minX(), bounds.minY(), bounds.minZ(), bounds.maxX(), bounds.maxY(), bounds.maxZ())) {
-                // 局部坐标查询：SchematicLevel 仅存储相对原点的数据
-                BlockState state = schematic.getBlockState(localPos);
-                if (state.getRenderShape() != RenderShape.MODEL)
-                    continue;
+        // 幽灵渲染：统一以半透明层输出，并对 RGBA 进行衰减（不再按模型层筛选）
+        VertexConsumer ghostConsumer = new TintingVertexConsumer(buffers.getBuffer(RenderType.translucent()), TINT_R, TINT_G, TINT_B, GHOST_ALPHA);
+        for (BlockPos localPos : BlockPos.betweenClosed(bounds.minX(), bounds.minY(), bounds.minZ(), bounds.maxX(), bounds.maxY(), bounds.maxZ())) {
+            // 局部坐标查询：SchematicLevel 仅存储相对原点的数据
+            BlockState state = schematic.getBlockState(localPos);
+            if (state.getRenderShape() != RenderShape.MODEL)
+                continue;
 
-                // 计算世界坐标位置：world = local + anchor
-                BlockPos worldPos = mutable.setWithOffset(localPos, anchor);
-                
-                BakedModel model = dispatcher.getBlockModel(state);
-                BlockEntity be = schematic.getBlockEntity(localPos);
-                ModelData modelData = be != null ? be.getModelData() : ModelData.EMPTY;
-                modelData = model.getModelData(schematic, localPos, state, modelData);
-                long seed = state.getSeed(worldPos);
-                random.setSeed(seed);
-                if (!model.getRenderTypes(state, random, modelData).contains(layer))
-                    continue;
+            // 计算世界坐标位置：world = local + anchor
+            BlockPos worldPos = mutable.setWithOffset(localPos, anchor);
 
-                ms.pushPose();
-                // 将局部方块平移到世界位置，并加上渲染的小数偏移；相机偏移由调用方已处理
-                ms.translate(worldPos.getX() + renderOffset.x, worldPos.getY() + renderOffset.y, worldPos.getZ() + renderOffset.z);
-                renderer.tesselateBlock(
-                    schematic,
-                    model,
-                    state,
-                    localPos,
-                    ms,
-                    buffers.getBuffer(layer),
-                    true,
-                    random,
-                    seed,
-                    OverlayTexture.NO_OVERLAY,
-                    modelData,
-                    layer
-                );
-                ms.popPose();
-            }
+            BakedModel model = dispatcher.getBlockModel(state);
+            BlockEntity be = schematic.getBlockEntity(localPos);
+            ModelData modelData = be != null ? be.getModelData() : ModelData.EMPTY;
+            modelData = model.getModelData(schematic, localPos, state, modelData);
+            long seed = state.getSeed(worldPos);
+            random.setSeed(seed);
+
+            ms.pushPose();
+            // 将局部方块平移到世界位置，并加上渲染的小数偏移；相机偏移由调用方已处理
+            ms.translate(worldPos.getX() + renderOffset.x, worldPos.getY() + renderOffset.y, worldPos.getZ() + renderOffset.z);
+            renderer.tesselateBlock(
+                schematic,
+                model,
+                state,
+                localPos,
+                ms,
+                ghostConsumer,
+                true,
+                random,
+                seed,
+                OverlayTexture.NO_OVERLAY,
+                modelData,
+                RenderType.translucent()
+            );
+            ms.popPose();
         }
 
         // 清理模型渲染缓存，恢复 schematic 的渲染模式标志
         ModelBlockRenderer.clearCache();
         schematic.renderMode = false;
     }
-}
 
+    /**
+     * 顶点消费者包装器：对传入的 RGBA 进行统一乘法（用于幽灵半透明/色调）。
+     * 注意：该实现依赖于标准 Model 渲染管线按顶点流式调用 color(...)，若底层使用 putBulkData 直接写入，
+     * 则颜色缩放可能不生效；在常见方块模型上此法可工作，若发现个别方块例外，可再做专项适配。
+     */
+    private static class TintingVertexConsumer implements VertexConsumer {
+        private final VertexConsumer delegate;
+        private final float rMul, gMul, bMul, aMul;
+
+        TintingVertexConsumer(VertexConsumer delegate, float rMul, float gMul, float bMul, float aMul) {
+            this.delegate = delegate;
+            this.rMul = rMul;
+            this.gMul = gMul;
+            this.bMul = bMul;
+            this.aMul = aMul;
+        }
+
+        @Override
+        public VertexConsumer addVertex(float x, float y, float z) {
+            return delegate.addVertex(x, y, z);
+        }
+
+        @Override
+        public VertexConsumer setColor(int r, int g, int b, int a) {
+            int rr = Mth.clamp((int) (r * rMul), 0, 255);
+            int gg = Mth.clamp((int) (g * gMul), 0, 255);
+            int bb = Mth.clamp((int) (b * bMul), 0, 255);
+            int aa = Mth.clamp((int) (a * aMul), 0, 255);
+            return delegate.setColor(rr, gg, bb, aa);
+        }
+
+        @Override
+        public VertexConsumer setUv(float u, float v) { return delegate.setUv(u, v); }
+
+        @Override
+        public VertexConsumer setUv1(int u, int v) { return delegate.setUv1(u, v); }
+
+        @Override
+        public VertexConsumer setUv2(int u, int v) { return delegate.setUv2(u, v); }
+
+        @Override
+        public VertexConsumer setNormal(float x, float y, float z) { return delegate.setNormal(x, y, z); }
+
+        // 1.21 VertexConsumer 无 endVertex/defaultColor/unsetDefaultColor，这里不实现
+    }
+}
