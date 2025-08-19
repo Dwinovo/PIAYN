@@ -21,10 +21,11 @@ public class SchematicPaperItem extends Item {
     
     @Override
     public InteractionResultHolder<ItemStack> use(@Nonnull Level level, @Nonnull Player player, @Nonnull InteractionHand usedHand) {
-        // 右键打开蓝图选择 GUI
+        // 当物品内没有蓝图文件名时，打开蓝图选择 GUI
         ItemStack stack = player.getItemInHand(usedHand);
-        if (level.isClientSide) {
-            Minecraft.getInstance().setScreen(new SchematicSelectScreen(stack));
+        String schematicName = stack.get(InitComponent.SCHEMATIC_NAME.get());
+        if ((schematicName == null || schematicName.isEmpty()) && level.isClientSide) {
+            Minecraft.getInstance().setScreen(new SchematicSelectScreen(stack, usedHand));
         }
         return InteractionResultHolder.sidedSuccess(stack, level.isClientSide);
     }

@@ -3,6 +3,7 @@ package com.dwinovo.piayn.event.register;
 import com.dwinovo.piayn.PIAYN;
 import com.dwinovo.piayn.packet.ModelSwitchPacket;
 import com.dwinovo.piayn.packet.ServerModelDataPacket;
+import com.dwinovo.piayn.packet.SchematicSelectPacket;
 
 
 import net.neoforged.bus.api.SubscribeEvent;
@@ -26,6 +27,12 @@ public class RegisterPacketEvent {
             ServerModelDataPacket.TYPE,
             ServerModelDataPacket.STREAM_CODEC,
             ServerModelDataPacket::handleClient
+        );
+        // 注册蓝图选择包（客户端 -> 服务端）
+        registrar.playToServer(
+            SchematicSelectPacket.TYPE,
+            SchematicSelectPacket.STREAM_CODEC,
+            SchematicSelectPacket::handleServer
         );
     
     }

@@ -50,8 +50,6 @@ public class SchematicLevel extends WrappedLevel implements ServerLevelAccessor,
     protected List<Entity> entities;
     protected BoundingBox bounds;
 
-    public boolean renderMode;
-
     /**
      * 构造：包裹一个真实的 {@link Level} 以复用其注册表/资源等上下文。
      * 创建自定义的 {@link SchematicChunkSource} 避免真实区块依赖。
@@ -118,14 +116,9 @@ public class SchematicLevel extends WrappedLevel implements ServerLevelAccessor,
     @Override
     /**
      * 查询局部坐标下的方块状态。
-     * - 若在蓝图下方一层（y == bounds.minY - 1）且非渲染模式，返回一层泥土以方便“打印”或预览对比。
      * - 若在 bounds 内并存在则返回处理后的状态，否则为空气。
-     *
-     * 提示：渲染期间会设置 {@link #renderMode} = true，避免出现“打印辅助层”。
      */
     public BlockState getBlockState(BlockPos pos) {
-        if (pos.getY() - bounds.minY() == -1 && !renderMode)
-            return Blocks.DIRT.defaultBlockState();
         if (getBounds().isInside(pos) && blocks.containsKey(pos))
             return processBlockStateForPrinting(blocks.get(pos));
         return Blocks.AIR.defaultBlockState();

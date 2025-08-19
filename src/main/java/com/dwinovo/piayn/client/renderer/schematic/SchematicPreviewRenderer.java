@@ -2,6 +2,7 @@ package com.dwinovo.piayn.client.renderer.schematic;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.dwinovo.piayn.client.renderer.catnip.outliner.Outliner;
+import com.dwinovo.piayn.client.renderer.catnip.render.DefaultSuperRenderTypeBuffer;
 import com.dwinovo.piayn.client.renderer.catnip.render.SuperRenderTypeBuffer;
 import com.dwinovo.piayn.world.schematic.level.SchematicLevel;
 
@@ -20,10 +21,12 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.structure.BoundingBox;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
+import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
 import net.neoforged.neoforge.client.model.data.ModelData;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.logging.LogUtils;
 import org.slf4j.Logger;
+import com.mojang.math.Axis;
 
 /**
  * 蓝图预览渲染器（精简版）。
@@ -40,6 +43,10 @@ public class SchematicPreviewRenderer {
     private Vec3 prevAnchor = Vec3.ZERO;
     private Vec3 currAnchor = Vec3.ZERO;
     private Vec3 targetAnchor = Vec3.ZERO;
+
+    // 以某个世界坐标为中心的旋转设置（由外部事件设置），单位：度
+    private Vec3 rotationCenter = null;
+    private float rotationDegrees = 0f;
 
     // 幽灵渲染参数（可日后做成可配置项）
     private static final float GHOST_ALPHA = 0.55f; // 半透明强度
@@ -92,8 +99,8 @@ public class SchematicPreviewRenderer {
      *   保证方块网格对齐，避免模型因浮点偏移导致抖动。
      * - 遍历结构包围盒 {@link BoundingBox} 中的每个局部方块位置，查询方块状态与模型数据，以半透明层进行一次性渲染（幽灵效果）。
      */
-    public void render(PoseStack ms, SuperRenderTypeBuffer buffers, float partialTick, SchematicLevel schematic, BlockPos anchor) {
-        if (schematic == null)
+    public void render(PoseStack ms, SuperRenderTypeBuffer buffers, float partialTick, SchematicLevel schematicLevel, BlockPos anchor) {
+        if (schematicLevel == null)
             return;
 
         Minecraft mc = Minecraft.getInstance();
@@ -104,7 +111,7 @@ public class SchematicPreviewRenderer {
         ModelBlockRenderer renderer = dispatcher.getModelRenderer();
         RandomSource random = RandomSource.createNewThreadLocalInstance();
         BlockPos.MutableBlockPos mutable = new BlockPos.MutableBlockPos();
-        BoundingBox bounds = schematic.getBounds();
+        BoundingBox bounds = schematicLevel.getBounds();
 
         // 记录局部体素边界（相对原点）
         int minX = bounds.minX(), minY = bounds.minY(), minZ = bounds.minZ();
@@ -136,14 +143,23 @@ public class SchematicPreviewRenderer {
         Vec3 baseAnchor = Vec3.atLowerCornerOf(anchor);
         Vec3 renderOffset = interpAnchor.subtract(baseAnchor);
 
-        schematic.renderMode = true;
         ModelBlockRenderer.enableCaching();
+
+        // 若设置了围绕某中心的旋转，则在渲染所有方块前对坐标系进行一次性旋转（绕 Y 轴）
+        boolean appliedRotation = false;
+        if (this.rotationCenter != null && this.rotationDegrees != 0f) {
+            ms.pushPose();
+            ms.translate(rotationCenter.x, rotationCenter.y, rotationCenter.z);
+            ms.mulPose(Axis.YP.rotationDegrees(this.rotationDegrees));
+            ms.translate(-rotationCenter.x, -rotationCenter.y, -rotationCenter.z);
+            appliedRotation = true;
+        }
 
         // 幽灵渲染：统一以半透明层输出，并对 RGBA 进行衰减（不再按模型层筛选）
         VertexConsumer ghostConsumer = new TintingVertexConsumer(buffers.getBuffer(RenderType.translucent()), TINT_R, TINT_G, TINT_B, GHOST_ALPHA);
         for (BlockPos localPos : BlockPos.betweenClosed(bounds.minX(), bounds.minY(), bounds.minZ(), bounds.maxX(), bounds.maxY(), bounds.maxZ())) {
             // 局部坐标查询：SchematicLevel 仅存储相对原点的数据
-            BlockState state = schematic.getBlockState(localPos);
+            BlockState state = schematicLevel.getBlockState(localPos);
             if (state.getRenderShape() != RenderShape.MODEL)
                 continue;
 
@@ -151,9 +167,9 @@ public class SchematicPreviewRenderer {
             BlockPos worldPos = mutable.setWithOffset(localPos, anchor);
 
             BakedModel model = dispatcher.getBlockModel(state);
-            BlockEntity be = schematic.getBlockEntity(localPos);
+            BlockEntity be = schematicLevel.getBlockEntity(localPos);
             ModelData modelData = be != null ? be.getModelData() : ModelData.EMPTY;
-            modelData = model.getModelData(schematic, localPos, state, modelData);
+            modelData = model.getModelData(schematicLevel, localPos, state, modelData);
             long seed = state.getSeed(worldPos);
             random.setSeed(seed);
 
@@ -161,7 +177,7 @@ public class SchematicPreviewRenderer {
             // 将局部方块平移到世界位置，并加上渲染的小数偏移；相机偏移由调用方已处理
             ms.translate(worldPos.getX() + renderOffset.x, worldPos.getY() + renderOffset.y, worldPos.getZ() + renderOffset.z);
             renderer.tesselateBlock(
-                schematic,
+                schematicLevel,
                 model,
                 state,
                 localPos,
@@ -179,7 +195,39 @@ public class SchematicPreviewRenderer {
 
         // 清理模型渲染缓存，恢复 schematic 的渲染模式标志
         ModelBlockRenderer.clearCache();
-        schematic.renderMode = false;
+
+        if (appliedRotation) {
+            ms.popPose();
+        }
+    }
+
+    /**
+     * 设置围绕指定世界坐标的旋转（度）。
+     */
+    public void setRotationAround(Vec3 worldCenter, float degrees) {
+        this.rotationCenter = worldCenter;
+        this.rotationDegrees = degrees;
+    }
+
+    /**
+     * 从渲染事件直接执行一次蓝图预览渲染：
+     * - 处理相机平移
+     * - 从事件的 DeltaTracker 提取 partial tick
+     * - 使用默认的 SuperRenderTypeBuffer
+     */
+    public void renderFromEvent(RenderLevelStageEvent event, SchematicLevel level, BlockPos anchor) {
+        if (level == null)
+            return;
+        Vec3 cam = event.getCamera().getPosition();
+        PoseStack ms = event.getPoseStack();
+        SuperRenderTypeBuffer buffers = DefaultSuperRenderTypeBuffer.getInstance();
+
+        ms.pushPose();
+        ms.translate(-cam.x, -cam.y, -cam.z);
+        float pt = event.getPartialTick().getGameTimeDeltaPartialTick(false);
+        this.render(ms, buffers, pt, level, anchor);
+        ms.popPose();
+        buffers.draw();
     }
 
     /**

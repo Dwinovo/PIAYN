@@ -6,13 +6,16 @@ import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
 import com.dwinovo.piayn.client.resource.schematic.ClientSchematicManager;
 import com.dwinovo.piayn.init.InitComponent;
+import com.dwinovo.piayn.packet.SchematicSelectPacket;
 import com.dwinovo.piayn.world.schematic.io.NbtStructureIO;
 import com.dwinovo.piayn.world.schematic.level.SchematicLevel;
 import net.minecraft.network.chat.Component;
+import net.neoforged.neoforge.network.PacketDistributor;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplate;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.InteractionHand;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -39,6 +42,7 @@ import java.util.stream.Stream;
  */
 public class SchematicSelectScreen extends Screen {
     private final ItemStack targetStack;
+    private final InteractionHand hand;
 
     /** 本地蓝图目录：config/piayn/schematics（以游戏运行目录为根）。 */
     private static final Path MODELS_DIR = Paths.get(System.getProperty("user.dir"), "config", "piayn", "schematics");
@@ -52,11 +56,13 @@ public class SchematicSelectScreen extends Screen {
     private int panelHeight = 180;
 
     /**
-     * @param targetStack 用于写入数据组件（SCHEMATIC_NAME）的目标物品（如蓝图纸）。
+     * @param targetStack 客户端侧用于本地预览（非必要写入）。
+     * @param hand        打开发送时所用的手，用于服务端定位物品写入组件。
      */
-    public SchematicSelectScreen(ItemStack targetStack) {
+    public SchematicSelectScreen(ItemStack targetStack, InteractionHand hand) {
         super(Component.literal("选择蓝图 NBT"));
         this.targetStack = targetStack;
+        this.hand = hand;
     }
 
     @Override
@@ -140,20 +146,15 @@ public class SchematicSelectScreen extends Screen {
         if (level == null || player == null) return;
         
         try {
-            // 加载StructureTemplate
-            StructureTemplate template = NbtStructureIO.loadNbtToStructureTemplate(level, fileName);
+            ClientSchematicManager.getInstance().display(level, fileName);
             
-            // 通过ClientSchematicManager创建SchematicLevel
-            SchematicLevel schematicLevel = ClientSchematicManager.getInstance().createSchematicLevel(template, level);
-            ClientSchematicManager.getInstance().setCurrentLevel(schematicLevel);
-            
-            // 使用SCHEMATIC_NAME数据组件存储文件名
-            targetStack.set(InitComponent.SCHEMATIC_NAME.get(), fileName);
+            // 客户端不直接写入组件，改为发包给服务端写入
+            PacketDistributor.sendToServer(new SchematicSelectPacket(fileName, this.hand));
 
             player.displayClientMessage(Component.literal("已选择蓝图: " + fileName), true);
             onClose();
             
-        } catch (IOException e) {
+        } catch (Exception e) {
             // 加载失败时的处理
             player.displayClientMessage(Component.literal("加载蓝图失败: " + fileName), true);
             e.printStackTrace();

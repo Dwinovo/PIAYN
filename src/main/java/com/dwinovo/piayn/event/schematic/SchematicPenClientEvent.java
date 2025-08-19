@@ -4,24 +4,22 @@ import org.slf4j.Logger;
 
 import com.dwinovo.piayn.PIAYN;
 import com.dwinovo.piayn.client.gui.screen.schematic.SchematicSaveScreen;
-import com.dwinovo.piayn.client.renderer.catnip.animation.AnimationTickHolder;
+// import removed: AnimationTickHolder now used via ClientUtils
 import com.dwinovo.piayn.client.renderer.catnip.outliner.Outliner;
 import com.dwinovo.piayn.client.renderer.catnip.render.BindableTexture;
 import com.dwinovo.piayn.item.SchematicPenItem;
+import com.dwinovo.piayn.utils.ClientUtils;
 import com.dwinovo.piayn.utils.RaycastHelper;
 import com.mojang.logging.LogUtils;
 import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.util.Mth;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.InteractionHand;
-import net.minecraft.world.item.context.BlockPlaceContext;
-import net.minecraft.world.item.context.UseOnContext;
+// imports removed: contexts moved to ClientUtils
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.AABB;
-import net.minecraft.world.phys.HitResult;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Direction.AxisDirection;
 import net.minecraft.world.phys.Vec3;
@@ -75,34 +73,9 @@ public class SchematicPenClientEvent {
         if (player == null || mc.level == null) return;
         if (!(player.getMainHandItem().getItem() instanceof SchematicPenItem)) return;
 
-        // 计算当前目标格：
-        // - Ctrl 按下：使用“视线 * range”的落点作为临时选中格，便于不指向方块时预览尺寸
-        // - 非 Ctrl：使用游戏命中结果中的方块位置
-        BlockPos lookingAt = null;
-        if (isCtrlDown(mc)) {
-            // 与 Create 一致：按下“激活工具”键（此处用Ctrl）时，使用投射点 eye + look * range
-            float pt = AnimationTickHolder.getPartialTicks();
-            Vec3 eye = player.getEyePosition(pt);
-            Vec3 dir = player.getLookAngle();
-            Vec3 target = eye.add(dir.scale(range));
-            selectedPos = BlockPos.containing(target);
-            lookingAt = selectedPos;
-        } else {
-            // 未按下时：用 RaycastHelper.rayTraceRange(75) 命中方块，并对垂直面做“上移一格”判定
-            var trace = RaycastHelper.rayTraceRange(mc.level, player, 75);
-            if (trace != null && trace.getType() == HitResult.Type.BLOCK) {
-                BlockPos hit = trace.getBlockPos();
-                boolean replaceable = mc.level.getBlockState(hit)
-                    .canBeReplaced(new BlockPlaceContext(new UseOnContext(player, InteractionHand.MAIN_HAND, trace)));
-                if (trace.getDirection().getAxis().isVertical() && !replaceable) {
-                    hit = hit.relative(trace.getDirection());
-                }
-                lookingAt = hit;
-                selectedPos = hit;
-            } else {
-                selectedPos = null;
-            }
-        }
+        // 计算当前目标格（统一封装在 ClientUtils）：
+        BlockPos lookingAt = ClientUtils.getLookingAt(mc, player, range);
+        selectedPos = lookingAt; // 维持本地状态，供后续点击等逻辑使用
 
         // 根据已选 first/second 和 lookingAt 计算当前渲染盒（使用客户端本地状态）
         BlockPos first = firstPos;
